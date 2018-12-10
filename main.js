@@ -47,6 +47,10 @@ function draw() {
   if (delta > interval) {
     time = now;
 
+    Object.keys(replicaIds).forEach(function(replicaId) {
+      replicas[replicaId].handleFrame();
+    });
+
     messageManager.advance();
     messageManager.deliverArrivals();
   }

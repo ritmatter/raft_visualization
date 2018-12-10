@@ -27,6 +27,11 @@ class Replica {
   }
 
   init() {
+    // Initialize the timer.
+    this.framesInElection = 60 + Math.random() * 60;
+    // Initialize the frame count.
+    this.frameCount = 0;
+
     this.group = d3.select("svg").append("g");
     this.circle = this.group.append("circle");
     this.circle.attr("cx", this.x);
@@ -34,7 +39,7 @@ class Replica {
     this.circle.attr("r", this.radius);
 
     // Create the arc that surrounds the replica.
-   var arc = d3.arc()
+   this.arc = d3.arc()
      .innerRadius(30)
      .outerRadius(40)
      .startAngle(0)
@@ -42,8 +47,15 @@ class Replica {
 
     this.path = this.group.append("path")
       .attr("class",'base')
-      .attr("d", arc)
+      .attr("d", this.arc)
       .attr("transform", "translate(" + this.x + "," + this.y + ")");
+  }
+
+  handleFrame() {
+    this.frameCount += 1;
+    var endAngle = 2 * Math.PI - (2 * Math.PI * this.frameCount / this.framesInElection);
+    this.arc.endAngle(endAngle);
+    this.path.attr("d", this.arc);
   }
 
   requestVote(receiver) {
