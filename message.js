@@ -1,7 +1,6 @@
 // Base message class.
 class Message {
-  constructor(id, radius, x, y, vx, vy, el, sender, receiver) {
-    this.id = id;
+  constructor(radius, x, y, vx, vy, el, sender, receiver) {
     this.radius = radius;
     this.x = x;
     this.y = y;
@@ -16,6 +15,10 @@ class Message {
     this.el.attr("cx", this.x);
     this.el.attr("cy", this.y);
     this.el.attr("r", this.radius);
+  }
+
+  cleanup() {
+    this.el.remove();
   }
 
   advance() {
@@ -54,8 +57,13 @@ class MessageFactory {
 
     var dx = rx - sx;
     var dy = ry - sy;
-    var theta = Math.atan(dy / dx);
-    return [this.v * Math.cos(theta), this.v * Math.sin(theta)];
+    var theta = Math.atan(Math.abs(dy / dx));
+
+    var vx = this.v * Math.cos(theta);
+    var vy = this.v * Math.sin(theta);
+    if (dx < 0) { vx *= -1; }
+    if (dy < 0) { vy *= -1; }
+    return [vx, vy];
   }
 
   getX(replicaId) {

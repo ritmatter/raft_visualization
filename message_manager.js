@@ -16,13 +16,16 @@ class MessageManager {
     });
   }
 
-  checkForArrivals() {
-    this.messages.forEach(function(message) {
+  deliverArrivals() {
+    for (var i = this.messages.length - 1; i > -1; i--) {
+      var message = this.messages[i];
       var receiver = this.receivers[message.receiver];
-      if (receiver.hasCollision(message)) {
-        console.log("MESSAGE ARRIVED");
+      if (receiver.receivedMessage(message)) {
+        this.messages.splice(i);
+        receiver.handleMessage(message);
+        message.cleanup();
       }
-    }.bind(this));
+    }
   }
 }
 
