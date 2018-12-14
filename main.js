@@ -11,6 +11,13 @@ import {
     RequestVoteResponseFactory
 } from "./request_vote_response.js"
 import {
+    AppendEntriesRequestFactory
+} from "./append_entries_request.js"
+import {
+    AppendEntriesResponseFactory
+} from "./append_entries_response.js"
+
+import {
     MessageManager
 } from "./message_manager.js"
 
@@ -23,6 +30,8 @@ var replicaIds = [];
 var replicas = {};
 var requestVoteRequestFactory;
 var requestVoteResponseFactory;
+var appendEntriesRequestFactory;
+var appendEntriesResponseFactory;
 var messageManager;
 var delta;
 
@@ -31,15 +40,24 @@ function init() {
     requestVoteRequestFactory = new RequestVoteRequestFactory(8, 8, replicas);
     requestVoteResponseFactory = new RequestVoteResponseFactory(8, 8, replicas);
 
-    replica1 = new Replica('0', 30, 180, 240, replicaIds, requestVoteRequestFactory, requestVoteResponseFactory, messageManager);
+    appendEntriesRequestFactory = new AppendEntriesRequestFactory(8, 8, replicas);
+    appendEntriesResponseFactory = new AppendEntriesResponseFactory(8, 8, replicas);
+
+    replica1 = new Replica('0', 30, 180, 240, replicaIds, requestVoteRequestFactory,
+        requestVoteResponseFactory, appendEntriesRequestFactory, appendEntriesResponseFactory,
+        messageManager);
     replicaIds.push('0');
     replicas['0'] = replica1;
 
-    replica2 = new Replica('1', 30, 360, 240, replicaIds, requestVoteRequestFactory, requestVoteResponseFactory, messageManager);
+    replica2 = new Replica('1', 30, 360, 240, replicaIds, requestVoteRequestFactory,
+        requestVoteResponseFactory, appendEntriesRequestFactory, appendEntriesResponseFactory,
+        messageManager);
     replicaIds.push('1');
     replicas['1'] = replica2;
 
-    replica3 = new Replica('2', 30, 270, 84, replicaIds, requestVoteRequestFactory, requestVoteResponseFactory, messageManager);
+    replica3 = new Replica('2', 30, 270, 84, replicaIds, requestVoteRequestFactory,
+        requestVoteResponseFactory, appendEntriesRequestFactory, appendEntriesResponseFactory,
+        messageManager);
     replicaIds.push('2');
     replicas['2'] = replica3;
 
