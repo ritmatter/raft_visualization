@@ -53,16 +53,17 @@ class Replica {
         this.circle.attr("cx", this.x);
         this.circle.attr("cy", this.y);
         this.circle.attr("r", this.radius);
+        this.circle.attr("class", "replica follower");
 
         // Create the arc that surrounds the replica.
         this.arc = d3.arc()
             .innerRadius(30)
-            .outerRadius(40)
+            .outerRadius(35)
             .startAngle(0)
             .endAngle(Math.PI);
 
         this.path = this.group.append("path")
-            .attr("class", 'base')
+            .attr("class", 'timer-top')
             .attr("d", this.arc)
             .attr("transform", "translate(" + this.x + "," + this.y + ")");
     }
@@ -94,6 +95,7 @@ class Replica {
     }
 
     beginElection() {
+        this.circle.attr("class", "replica candidate");
         this.currentTerm++;
         this.votedFor = this.id;
         this.voteCount++;
@@ -215,6 +217,7 @@ class Replica {
 
         // If we casted a positive vote, become a follower and mark vote.
         if (voteGranted) {
+            this.circle.attr("class", "replica follower");
             this.nextIndex = null;
             this.matchIndex = null;
             this.framesSinceAppendEntries = null;
@@ -229,6 +232,8 @@ class Replica {
 
             // Become leader if we have received a majority.
             if (this.voteCount > Math.round(this.replicaIds.length / 2 + 0.5)) {
+                this.circle.attr("class", "replica leader");
+
                 var lastLogIndex = this.log.length == 0 ? 0 : this.log.length - 1;
                 this.nextIndex = [];
                 this.matchIndex = [];

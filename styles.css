@@ -1,0 +1,15 @@
+.timer-top {
+  fill: #3a34e5;
+}
+
+.replica {
+  fill: #007bff;
+}
+
+.candidate {
+  opacity: 0.5;
+}
+
+.follower {
+  opacity: 0.2;
+}
