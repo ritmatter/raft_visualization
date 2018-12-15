@@ -1,15 +1,46 @@
+td {
+    border-radius: 2px;
+    width: 30px;
+    height: 30px;
+}
+
+.animation {
+    float: left;
+}
+
+.logs {
+    border-radius: 5px;
+    border: 1px solid grey;
+}
+
+.red-data {
+    background-color: red;
+}
+
+.blue-data {
+    background-color: blue;
+}
+
+.green-data {
+    background-color: green;
+}
+
 .timer-top {
-  fill: #3a34e5;
+    fill: #3a34e5;
+}
+
+.client {
+    fill: green;
 }
 
 .replica {
-  fill: #007bff;
+    fill: #007bff;
 }
 
 .candidate {
-  opacity: 0.5;
+    opacity: 0.5;
 }
 
 .follower {
-  opacity: 0.2;
+    opacity: 0.2;
 }

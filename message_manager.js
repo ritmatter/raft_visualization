@@ -12,9 +12,9 @@ class MessageManager {
         this.messages.push(message);
     }
 
-    advance() {
+    handleFrame() {
         this.messages.forEach(function(message) {
-            message.advance();
+            message.handleFrame();
         });
         this.deliverArrivals();
     }

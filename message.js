@@ -21,7 +21,7 @@ class Message {
         this.el.remove();
     }
 
-    advance() {
+    handleFrame() {
         // Advances x and y coordinates by one iteration.
         this.x = this.x + this.vx;
         this.y = this.y + this.vy;

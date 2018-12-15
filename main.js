@@ -16,10 +16,15 @@ import {
 import {
     AppendEntriesResponseFactory
 } from "./append_entries_response.js"
-
 import {
     MessageManager
 } from "./message_manager.js"
+import {
+    ClientManager
+} from "./client_manager.js"
+import {
+    ClientFactory
+} from "./client_factory.js"
 
 var fps = 60;
 var time = new Date().getTime();
@@ -33,6 +38,8 @@ var requestVoteResponseFactory;
 var appendEntriesRequestFactory;
 var appendEntriesResponseFactory;
 var messageManager;
+var clientManager;
+var clientFactory;
 var delta;
 
 function init() {
@@ -42,6 +49,9 @@ function init() {
 
     appendEntriesRequestFactory = new AppendEntriesRequestFactory(8, 8, replicas);
     appendEntriesResponseFactory = new AppendEntriesResponseFactory(8, 8, replicas);
+
+    clientFactory = new ClientFactory(20);
+    clientManager = new ClientManager(clientFactory, 1, 30, 100, 200);
 
     replica1 = new Replica('0', 30, 180, 240, replicaIds, requestVoteRequestFactory,
         requestVoteResponseFactory, appendEntriesRequestFactory, appendEntriesResponseFactory,
@@ -79,7 +89,8 @@ function draw() {
             replicas[replicaId].handleFrame();
         });
 
-        messageManager.advance();
+        messageManager.handleFrame();
+        clientManager.handleFrame();
     }
 };
 
