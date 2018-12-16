@@ -7,7 +7,7 @@ import {
 } from "./data_request.js"
 
 class Client extends Entity {
-    constructor(id, radius, x, y, messageManager, dataRequestFactory, avgFramesBetweenMessages) {
+    constructor(id, radius, x, y, messageManager, dataRequestFactory, avgFramesBetweenMessages, dataRequestRouter) {
         super(radius);
         this.id = id;
         this.radius = radius;
@@ -16,6 +16,7 @@ class Client extends Entity {
         this.messageManager = messageManager;
         this.dataRequestFactory = dataRequestFactory;
         this.avgFramesBetweenMessages = avgFramesBetweenMessages;
+        this.dataRequestRouter = dataRequestRouter;
     }
 
     init() {
@@ -43,7 +44,13 @@ class Client extends Entity {
     disappear() {}
 
     sendDataRequest() {
-      var msg = this.dataRequestFactory.get("0", this.id, "2");
+      var leader = this.dataRequestRouter.getLeader();
+      if (leader == null) {
+        console.log("Client " + this.id + " skipping data because there is no leader.");
+        return;
+      }
+
+      var msg = this.dataRequestFactory.get("0", this.id, leader);
       msg.init();
       this.messageManager.schedule(msg);
     }

@@ -3,16 +3,17 @@ import {
 } from "./client.js"
 
 class ClientFactory {
-    constructor(radius, messageManager, dataRequestFactory, avgFramesBetweenMessages) {
+    constructor(radius, messageManager, dataRequestFactory, avgFramesBetweenMessages, dataRequestRouter) {
         this.radius = radius;
         this.messageManager = messageManager;
         this.dataRequestFactory = dataRequestFactory;
         this.avgFramesBetweenMessages = avgFramesBetweenMessages;
+        this.dataRequestRouter = dataRequestRouter;
     }
 
     get(x, y) {
         return new Client(this.makeid(), this.radius, x, y, this.messageManager, this.dataRequestFactory,
-          this.avgFramesBetweenMessages);
+          this.avgFramesBetweenMessages, this.dataRequestRouter);
     }
 
     makeid() {

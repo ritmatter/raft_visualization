@@ -7,7 +7,9 @@ import {
 import {
     DataRequestFactory
 } from "./data_request.js"
-
+import {
+    DataRequestRouter
+} from "./data_request_router.js"
 import {
     RequestVoteRequestFactory
 } from "./request_vote_request.js"
@@ -38,7 +40,7 @@ var color = "black";
 var replica1, replica2, replica3;
 var replicaIds = [];
 
-var replicas = {}; // A map from replica ID to replia.
+var replicas = [] // A list of the replicas.
 var entities = {}; // A map from entity ID to entity.
 
 var requestVoteRequestFactory;
@@ -46,6 +48,7 @@ var requestVoteResponseFactory;
 var appendEntriesRequestFactory;
 var appendEntriesResponseFactory;
 var dataRequestFactory;
+var dataRequestRouter;
 var messageManager;
 var clientManager;
 var clientFactory;
@@ -91,7 +94,8 @@ function init() {
     var coordsBl = [animationCenter - triangleSide / 2, bottomY];
     var coordsBr = [animationCenter + triangleSide / 2, bottomY];
 
-    messageManager = new MessageManager(entities);
+    dataRequestRouter = new DataRequestRouter(replicas);
+    messageManager = new MessageManager(entities, dataRequestRouter);
     requestVoteRequestFactory = new RequestVoteRequestFactory(MESSAGE_RADIUS, MESSAGE_VELOCITY, entities);
     requestVoteResponseFactory = new RequestVoteResponseFactory(MESSAGE_RADIUS, MESSAGE_VELOCITY, entities);
 
@@ -100,7 +104,7 @@ function init() {
 
     dataRequestFactory = new DataRequestFactory(MESSAGE_RADIUS, MESSAGE_VELOCITY, entities);
 
-    clientFactory = new ClientFactory(CLIENT_RADIUS, messageManager, dataRequestFactory, AVG_FRAMES_BETWEEN_DATA);
+    clientFactory = new ClientFactory(CLIENT_RADIUS, messageManager, dataRequestFactory, AVG_FRAMES_BETWEEN_DATA, dataRequestRouter);
     clientManager = new ClientManager(entities, clientFactory, MAX_CLIENTS, AVG_FRAMES_BETWEEN_CLIENTS, MIN_CLIENT_FRAME_LIFE, MAX_CLIENT_FRAME_LIFE, BOX_LENGTH, REPLICA_BOX_LENGTH, CLIENT_RADIUS);
 
     replica1 = new Replica('0', REPLICA_RADIUS, coordsBl[0], coordsBl[1], replicaIds, requestVoteRequestFactory,
@@ -108,18 +112,21 @@ function init() {
         messageManager);
     replicaIds.push('0');
     entities['0'] = replica1;
+    replicas.push(replica1);
 
     replica2 = new Replica('1', REPLICA_RADIUS, coordsBr[0], coordsBr[1], replicaIds, requestVoteRequestFactory,
         requestVoteResponseFactory, appendEntriesRequestFactory, appendEntriesResponseFactory,
         messageManager);
     replicaIds.push('1');
     entities['1'] = replica2;
+    replicas.push(replica2);
 
     replica3 = new Replica('2', REPLICA_RADIUS, coordsTop[0], coordsTop[1], replicaIds, requestVoteRequestFactory,
         requestVoteResponseFactory, appendEntriesRequestFactory, appendEntriesResponseFactory,
         messageManager);
     replicaIds.push('2');
     entities['2'] = replica3;
+    replicas.push(replica3);
 
     Object.keys(replicaIds).forEach(function(replicaId) {
         entities[replicaId].init();

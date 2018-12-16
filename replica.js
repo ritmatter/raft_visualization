@@ -84,9 +84,12 @@ class Replica extends Entity {
         this.electionFramesPassed = 0;
     }
 
+    isLeader() {
+      return this.nextIndex!= null;
+    }
+
     handleFrame() {
-        // If we are already leader just check if heartbeat is necessary.
-        if (this.nextIndex != null) {
+        if (this.isLeader()) {
             this.framesSinceAppendEntries++;
             if (this.framesSinceAppendEntries == this.MAX_FRAMES_SINCE_APPEND_ENTRIES) {
                 this.sendHeartbeat();
@@ -157,9 +160,15 @@ class Replica extends Entity {
     }
 
     handleDataRequest(msg) {
+      // Ignore data requests if we are not the leader.
+      // TODO: Consider request forwarding.
+      if (!this.isLeader()) {
+        return;
+      }
+
       this.log.push(msg.data);
       this.logIndexToClient[this.log.length - 1] = msg.sender;
-      appendNewEntries([msg.data]);
+      this.appendNewEntries([msg.data]);
     }
 
     handleAppendEntriesRequest(msg) {
@@ -181,7 +190,7 @@ class Replica extends Entity {
             for (var i = 0; i < msg.entries.length; i++) {
                 latestNewIndex = earliestNewIndex + i;
                 var leaderEntry = msg.entries[i];
-                if (index > this.log.length - 1) {
+                if (latestNewIndex > this.log.length - 1) {
                     // We are beyond the length of our log, add the entry.
                     this.log.push(leaderEntry);
                 } else if (this.log[latestNewIndex] != leaderEntry) {
@@ -296,7 +305,7 @@ class Replica extends Entity {
     }
 
     sendHeartbeat() {
-      appendNewEntries([]);
+      this.appendNewEntries([]);
     }
 }
 
