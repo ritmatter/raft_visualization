@@ -1,24 +1,26 @@
 // Base message class.
 class Message {
-    constructor(radius, x, y, vx, vy, el, sender, receiver) {
+    constructor(radius, x, y, vx, vy, sender, receiver) {
         this.radius = radius;
         this.x = x;
         this.y = y;
         this.vx = vx;
         this.vy = vy;
-        this.el = el;
         this.sender = sender;
         this.receiver = receiver;
     }
 
     init() {
+        this.group = d3.select("svg").append("g");
+
+        this.el = this.group.append("circle");
         this.el.attr("cx", this.x);
         this.el.attr("cy", this.y);
         this.el.attr("r", this.radius);
     }
 
     cleanup() {
-        this.el.remove();
+        this.group.remove();
     }
 
     handleFrame() {
@@ -32,7 +34,7 @@ class Message {
 
 // Base factory for creating message objects.
 class MessageFactory {
-    constructor(radius, v, replicas) {
+    constructor(radius, v, entities) {
         // By default all messages have the same radius.
         this.radius = radius;
 
@@ -41,14 +43,14 @@ class MessageFactory {
         // real.
         this.v = v;
 
-        // A map from replicaId to replica. Each replica's information
-        // is used to determine component velocities.
-        this.replicas = replicas;
+        // A map of Id to entity. Each entity has x and y coordinates that
+        // are used to direct messages.
+        this.entities = entities;
     }
 
     getComponentVelocities(sender, receiver) {
-        var sender = this.replicas[sender];
-        var receiver = this.replicas[receiver];
+        var sender = this.entities[sender];
+        var receiver = this.entities[receiver];
 
         var sx = sender.x;
         var sy = sender.y;
@@ -70,16 +72,12 @@ class MessageFactory {
         return [vx, vy];
     }
 
-    getX(replicaId) {
-        return this.replicas[replicaId].x;
+    getX(entityId) {
+        return this.entities[entityId].x;
     }
 
-    getY(replicaId) {
-        return this.replicas[replicaId].y;
-    }
-
-    getEl() {
-        return d3.select("svg").append("circle");
+    getY(entityId) {
+        return this.entities[entityId].y;
     }
 }
 

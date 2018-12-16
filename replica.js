@@ -1,4 +1,7 @@
 import {
+    Entity
+} from "./entity.js"
+import {
     RequestVoteRequest
 } from "./request_vote_request.js"
 import {
@@ -10,9 +13,13 @@ import {
 import {
     AppendEntriesResponse
 } from "./append_entries_response.js"
+import {
+    DataRequest
+} from "./data_request.js"
 
-class Replica {
+class Replica extends Entity {
     constructor(id, radius, x, y, replicaIds, requestVoteRequestFactory, requestVoteResponseFactory, appendEntriesRequestFactory, appendEntriesResponseFactory, messageManager) {
+        super(radius);
         this.id = id;
         this.radius = radius;
         this.x = x;
@@ -37,6 +44,10 @@ class Replica {
         this.nextIndex = null;
         this.matchIndex = null;
         this.framesSinceAppendEntries = null;
+
+        // A map from log index to client. This way, the leader can
+        // reply when it has finally committed the data.
+        this.logIndexToClient = {};
 
         // Volatile state during an election.
         this.voteCount = 0;
@@ -137,9 +148,18 @@ class Replica {
             case AppendEntriesResponse:
                 this.handleAppendEntriesResponse(msg);
                 break;
+            case DataRequest:
+                this.handleDataRequest(msg);
+                break;
             default:
                 break;
         }
+    }
+
+    handleDataRequest(msg) {
+      this.log.push(msg.data);
+      this.logIndexToClient[this.log.length - 1] = msg.sender;
+      appendNewEntries([msg.data]);
     }
 
     handleAppendEntriesRequest(msg) {
@@ -256,34 +276,27 @@ class Replica {
         }
     }
 
-    sendHeartbeat() {
-        var prevLogIndex = this.log.length == 0 ? null : this.log.length;
-        var prevLogTerm = this.log.length == 0 ? null : this.log[prevLogIndex];
+    appendNewEntries(entries) {
+      var prevLogIndex = this.log.length == 0 ? null : this.log.length;
+      var prevLogTerm = this.log.length == 0 ? null : this.log[prevLogIndex];
 
-        this.replicaIds.forEach(function(replicaId) {
-            // TODO: Generalize this logic instead of repeating it.
-            if (replicaId == this.id) {
-                return;
-            }
+      this.replicaIds.forEach(function(replicaId) {
+          // TODO: Generalize this logic instead of repeating it.
+          if (replicaId == this.id) {
+              return;
+          }
 
-            var msg = this.appendEntriesRequestFactory.get(
-                this.currentTerm, this.id, prevLogIndex, prevLogTerm, [], this.commitIndex, replicaId);
-            msg.init();
-            this.messageManager.schedule(msg);
-        }.bind(this));
+          var msg = this.appendEntriesRequestFactory.get(
+              this.currentTerm, this.id, prevLogIndex, prevLogTerm, entries, this.commitIndex, replicaId);
+          msg.init();
+          this.messageManager.schedule(msg);
+      }.bind(this));
 
-        this.framesSinceAppendEntries = 0;
+      this.framesSinceAppendEntries = 0;
     }
 
-    containsMessage(msg) {
-        var dx = this.x - msg.x;
-        var dy = this.y - msg.y;
-        var distance = Math.sqrt(dx * dx + dy * dy);
-
-        if (distance < this.radius + msg.radius) {
-            return true;
-        }
-        return false;
+    sendHeartbeat() {
+      appendNewEntries([]);
     }
 }
 

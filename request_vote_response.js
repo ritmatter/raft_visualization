@@ -4,8 +4,8 @@ import {
 } from "./message.js"
 
 class RequestVoteResponse extends Message {
-    constructor(term, voteGranted, radius, x, y, vx, vy, el, sender, receiver) {
-        super(radius, x, y, vx, vy, el, sender, receiver);
+    constructor(term, voteGranted, radius, x, y, vx, vy, sender, receiver) {
+        super(radius, x, y, vx, vy, sender, receiver);
         this.term = term;
         this.voteGranted = voteGranted;
     }
@@ -19,7 +19,7 @@ class RequestVoteResponseFactory extends MessageFactory {
     get(term, voteGranted, sender, receiver) {
         var vel = super.getComponentVelocities(sender, receiver);
         return new RequestVoteResponse(term, voteGranted,
-            this.radius, super.getX(sender), super.getY(sender), vel[0], vel[1], super.getEl(), sender, receiver);
+            this.radius, super.getX(sender), super.getY(sender), vel[0], vel[1], sender, receiver);
     }
 }
 

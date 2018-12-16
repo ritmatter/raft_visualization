@@ -5,6 +5,10 @@ import {
     Replica
 } from "./replica.js"
 import {
+    DataRequestFactory
+} from "./data_request.js"
+
+import {
     RequestVoteRequestFactory
 } from "./request_vote_request.js"
 import {
@@ -30,49 +34,95 @@ var fps = 60;
 var time = new Date().getTime();
 var interval = 1000 / fps;
 var color = "black";
+
 var replica1, replica2, replica3;
 var replicaIds = [];
-var replicas = {};
+
+var replicas = {}; // A map from replica ID to replia.
+var entities = {}; // A map from entity ID to entity.
+
 var requestVoteRequestFactory;
 var requestVoteResponseFactory;
 var appendEntriesRequestFactory;
 var appendEntriesResponseFactory;
+var dataRequestFactory;
 var messageManager;
 var clientManager;
 var clientFactory;
 var delta;
 
+// The length of a square that encapsulates the entire animation space.
+var BOX_LENGTH = 500;
+
+// The length of a square that encapsulates all of the replicas.
+var REPLICA_BOX_LENGTH = 300;
+
+// Padding to apply to the outside of the replica box so that clients
+// do not appear directly next to a replica.
+var REPLICA_BOX_PADDING = 20;
+
+// The radius of an individual replica.
+var REPLICA_RADIUS = 30;
+
+var MESSAGE_RADIUS = 10;
+
+var MESSAGE_VELOCITY = 8;
+
+// Parameters for clients.
+var CLIENT_RADIUS = 20;
+var AVG_FRAMES_BETWEEN_DATA = 120;
+var MAX_CLIENTS = 1;
+var AVG_FRAMES_BETWEEN_CLIENTS = 60;
+var MIN_CLIENT_FRAME_LIFE = 300;
+var MAX_CLIENT_FRAME_LIFE = 600;
+
 function init() {
-    messageManager = new MessageManager(replicas);
-    requestVoteRequestFactory = new RequestVoteRequestFactory(8, 8, replicas);
-    requestVoteResponseFactory = new RequestVoteResponseFactory(8, 8, replicas);
+    // Initialize the size of the SVG plane.
+    var svg = d3.select("svg");
+    svg.attr("width", BOX_LENGTH);
+    svg.attr("height", BOX_LENGTH);
 
-    appendEntriesRequestFactory = new AppendEntriesRequestFactory(8, 8, replicas);
-    appendEntriesResponseFactory = new AppendEntriesResponseFactory(8, 8, replicas);
+    var animationCenter = BOX_LENGTH / 2;
+    var replicaCircleRadius = REPLICA_BOX_LENGTH / 2 - REPLICA_RADIUS - REPLICA_BOX_PADDING;
+    var triangleSide = replicaCircleRadius * Math.sqrt(3);
 
-    clientFactory = new ClientFactory(20);
-    clientManager = new ClientManager(clientFactory, 1, 30, 100, 200);
+    var coordsTop = [animationCenter, animationCenter - replicaCircleRadius];
+    var bottomY = animationCenter + (triangleSide * Math.sqrt(3) / 2 - replicaCircleRadius);
+    var coordsBl = [animationCenter - triangleSide / 2, bottomY];
+    var coordsBr = [animationCenter + triangleSide / 2, bottomY];
 
-    replica1 = new Replica('0', 30, 180, 240, replicaIds, requestVoteRequestFactory,
+    messageManager = new MessageManager(entities);
+    requestVoteRequestFactory = new RequestVoteRequestFactory(MESSAGE_RADIUS, MESSAGE_VELOCITY, entities);
+    requestVoteResponseFactory = new RequestVoteResponseFactory(MESSAGE_RADIUS, MESSAGE_VELOCITY, entities);
+
+    appendEntriesRequestFactory = new AppendEntriesRequestFactory(MESSAGE_RADIUS, MESSAGE_VELOCITY, entities);
+    appendEntriesResponseFactory = new AppendEntriesResponseFactory(MESSAGE_RADIUS, MESSAGE_VELOCITY, entities);
+
+    dataRequestFactory = new DataRequestFactory(MESSAGE_RADIUS, MESSAGE_VELOCITY, entities);
+
+    clientFactory = new ClientFactory(CLIENT_RADIUS, messageManager, dataRequestFactory, AVG_FRAMES_BETWEEN_DATA);
+    clientManager = new ClientManager(entities, clientFactory, MAX_CLIENTS, AVG_FRAMES_BETWEEN_CLIENTS, MIN_CLIENT_FRAME_LIFE, MAX_CLIENT_FRAME_LIFE, BOX_LENGTH, REPLICA_BOX_LENGTH, CLIENT_RADIUS);
+
+    replica1 = new Replica('0', REPLICA_RADIUS, coordsBl[0], coordsBl[1], replicaIds, requestVoteRequestFactory,
         requestVoteResponseFactory, appendEntriesRequestFactory, appendEntriesResponseFactory,
         messageManager);
     replicaIds.push('0');
-    replicas['0'] = replica1;
+    entities['0'] = replica1;
 
-    replica2 = new Replica('1', 30, 360, 240, replicaIds, requestVoteRequestFactory,
+    replica2 = new Replica('1', REPLICA_RADIUS, coordsBr[0], coordsBr[1], replicaIds, requestVoteRequestFactory,
         requestVoteResponseFactory, appendEntriesRequestFactory, appendEntriesResponseFactory,
         messageManager);
     replicaIds.push('1');
-    replicas['1'] = replica2;
+    entities['1'] = replica2;
 
-    replica3 = new Replica('2', 30, 270, 84, replicaIds, requestVoteRequestFactory,
+    replica3 = new Replica('2', REPLICA_RADIUS, coordsTop[0], coordsTop[1], replicaIds, requestVoteRequestFactory,
         requestVoteResponseFactory, appendEntriesRequestFactory, appendEntriesResponseFactory,
         messageManager);
     replicaIds.push('2');
-    replicas['2'] = replica3;
+    entities['2'] = replica3;
 
     Object.keys(replicaIds).forEach(function(replicaId) {
-        replicas[replicaId].init();
+        entities[replicaId].init();
     });
 }
 
@@ -85,12 +135,13 @@ function draw() {
     if (delta > interval) {
         time = now;
 
-        Object.keys(replicaIds).forEach(function(replicaId) {
-            replicas[replicaId].handleFrame();
-        });
-
         messageManager.handleFrame();
         clientManager.handleFrame();
+
+        Object.keys(entities).forEach(function(entityId) {
+            entities[entityId].handleFrame();
+        });
+
     }
 };
 

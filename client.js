@@ -1,13 +1,26 @@
-class Client {
-    constructor(id, radius, x, y) {
+import {
+    Entity
+} from "./entity.js"
+
+import {
+    DataRequest
+} from "./data_request.js"
+
+class Client extends Entity {
+    constructor(id, radius, x, y, messageManager, dataRequestFactory, avgFramesBetweenMessages) {
+        super(radius);
         this.id = id;
         this.radius = radius;
         this.x = x;
         this.y = y;
+        this.messageManager = messageManager;
+        this.dataRequestFactory = dataRequestFactory;
+        this.avgFramesBetweenMessages = avgFramesBetweenMessages;
     }
 
     init() {
         this.group = d3.select("svg").append("g");
+
         this.circle = this.group.append("circle");
         this.circle.attr("cx", this.x);
         this.circle.attr("cy", this.y);
@@ -16,16 +29,24 @@ class Client {
     }
 
     cleanup() {
-        this.circle.remove();
+        this.group.remove();
     }
 
-    handleFrame() {}
+    handleFrame() {
+      if (Math.random() < 1 / this.avgFramesBetweenMessages) {
+        this.sendDataRequest();
+      }
+    }
 
     appear() {}
 
     disappear() {}
 
-    sendDataRequest() {}
+    sendDataRequest() {
+      var msg = this.dataRequestFactory.get("0", this.id, "2");
+      msg.init();
+      this.messageManager.schedule(msg);
+    }
 
     handleMessage(msg) {}
 }

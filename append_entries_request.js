@@ -4,8 +4,8 @@ import {
 } from "./message.js"
 
 class AppendEntriesRequest extends Message {
-    constructor(term, prevLogIndex, prevLogTerm, entries, leaderCommit, radius, x, y, vx, vy, el, sender, receiver) {
-        super(radius, x, y, vx, vy, el, sender, receiver);
+    constructor(term, prevLogIndex, prevLogTerm, entries, leaderCommit, radius, x, y, vx, vy, sender, receiver) {
+        super(radius, x, y, vx, vy, sender, receiver);
         this.term = term;
         this.prevLogIndex = prevLogIndex;
         this.prevLogTerm = prevLogTerm;
@@ -15,15 +15,15 @@ class AppendEntriesRequest extends Message {
 }
 
 class AppendEntriesRequestFactory extends MessageFactory {
-    constructor(radius, v, replicas) {
-        super(radius, v, replicas);
+    constructor(radius, v, entities) {
+        super(radius, v, entities);
     }
 
     get(term, leaderId, prevLogIndex, prevLogTerm, entries, leaderCommit, receiver) {
         var vel = super.getComponentVelocities(leaderId, receiver);
         return new AppendEntriesRequest(term, prevLogIndex, prevLogTerm, entries,
             leaderCommit, this.radius, super.getX(leaderId), super.getY(leaderId), vel[0],
-            vel[1], super.getEl(), leaderId, receiver);
+            vel[1], leaderId, receiver);
     }
 }
 
