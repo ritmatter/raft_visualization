@@ -34,9 +34,9 @@ class Client extends Entity {
     }
 
     handleFrame() {
-      if (Math.random() < 1 / this.avgFramesBetweenMessages) {
-        this.sendDataRequest();
-      }
+        if (Math.random() < 1 / this.avgFramesBetweenMessages) {
+            this.sendDataRequest();
+        }
     }
 
     appear() {}
@@ -44,17 +44,17 @@ class Client extends Entity {
     disappear() {}
 
     sendDataRequest() {
-      var leader = this.dataRequestRouter.getLeader();
-      if (leader == null) {
-        console.log("Client " + this.id + " skipping data because there is no leader.");
-        return;
-      }
+        var leader = this.dataRequestRouter.getLeader();
+        if (leader == null) {
+            console.log("Client " + this.id + " skipping data because there is no leader.");
+            return;
+        }
 
-      var dataTypes = ["SPADE", "CLUB", "HEART", "DIAMOND"];
-      var dataType = dataTypes[Math.round(Math.random() * (dataTypes.length - 1))];
-      var msg = this.dataRequestFactory.get(dataType, this.id, leader);
-      msg.init();
-      this.messageManager.schedule(msg);
+        var dataTypes = ["SPADE", "CLUB", "HEART", "DIAMOND"];
+        var dataType = dataTypes[Math.round(Math.random() * (dataTypes.length - 1))];
+        var msg = this.dataRequestFactory.get(dataType, this.id, leader);
+        msg.init();
+        this.messageManager.schedule(msg);
     }
 
     handleMessage(msg) {}

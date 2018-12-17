@@ -2,7 +2,9 @@ import {
     Message,
     MessageFactory
 } from "./message.js"
-import { getDataIcon} from "./utils.js"
+import {
+    getDataIcon
+} from "./utils.js"
 
 class DataRequest extends Message {
     constructor(data, radius, x, y, vx, vy, sender, receiver) {
@@ -11,28 +13,28 @@ class DataRequest extends Message {
     }
 
     init() {
-      super.init();
+        super.init();
 
-      // TODO: Remove hackiness by making circle configurable.
-      this.el.remove();
+        // TODO: Remove hackiness by making circle configurable.
+        this.el.remove();
 
-      this.icon = this.group.append("svg:image")
-        .attr("width", 2 * this.radius)
-        .attr("height", 2 * this.radius)
-        .attr("xlink:href", getDataIcon(this.data));
-      this.setImgPosition();
+        this.icon = this.group.append("svg:image")
+            .attr("width", 2 * this.radius)
+            .attr("height", 2 * this.radius)
+            .attr("xlink:href", getDataIcon(this.data));
+        this.setImgPosition();
     }
 
     handleFrame() {
-      super.handleFrame();
-      this.setImgPosition();
+        super.handleFrame();
+        this.setImgPosition();
     }
 
     setImgPosition() {
-      var imgX = this.x - this.radius;
-      var imgY = this.y - this.radius;
-      this.icon.attr(
-        "transform", "translate(" + imgX + ", " + imgY + ")");
+        var imgX = this.x - this.radius;
+        var imgY = this.y - this.radius;
+        this.icon.attr(
+            "transform", "translate(" + imgX + ", " + imgY + ")");
     }
 }
 

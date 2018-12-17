@@ -41,33 +41,33 @@ class ClientManager {
     }
 
     getRandomCoordinates() {
-      var smallestX = this.clientRadius;
-      var largestX = this.planeLength - this.clientRadius;
-      var x = Math.round(Math.random() * (largestX - smallestX)) + smallestX;
+        var smallestX = this.clientRadius;
+        var largestX = this.planeLength - this.clientRadius;
+        var x = Math.round(Math.random() * (largestX - smallestX)) + smallestX;
 
-      var y;
-      var replicaBoxTop = this.planeLength / 2 - this.replicaPlaneLength / 2;
-      var replicaBoxBottom = replicaBoxTop + this.replicaPlaneLength;
-      if (x < replicaBoxTop - this.clientRadius || x > replicaBoxBottom + this.clientRadius) {
-        // y can be any number inside the outer box without being in the replica box.
-        y = Math.round(Math.random() * (largestX - smallestX)) + smallestX;
-      } else {
-        // x coordinate vertically intercepts inner box.
-        // y must be chosen to avoid the inner box.
-
-        var rand = Math.random();
-        if (rand < 0.5) {
-          var smallestY = this.clientRadius;
-          var largestY = replicaBoxTop - this.clientRadius;
-          y = Math.round(Math.random() * (largestY - smallestY)) + smallestY;
+        var y;
+        var replicaBoxTop = this.planeLength / 2 - this.replicaPlaneLength / 2;
+        var replicaBoxBottom = replicaBoxTop + this.replicaPlaneLength;
+        if (x < replicaBoxTop - this.clientRadius || x > replicaBoxBottom + this.clientRadius) {
+            // y can be any number inside the outer box without being in the replica box.
+            y = Math.round(Math.random() * (largestX - smallestX)) + smallestX;
         } else {
-          var smallestY = replicaBoxTop + this.replicaPlaneLength + this.clientRadius;
-          var largestY = this.planeLength - this.clientRadius;;
-          y = Math.round(Math.random() * (largestY - smallestY)) + smallestY;
+            // x coordinate vertically intercepts inner box.
+            // y must be chosen to avoid the inner box.
+
+            var rand = Math.random();
+            if (rand < 0.5) {
+                var smallestY = this.clientRadius;
+                var largestY = replicaBoxTop - this.clientRadius;
+                y = Math.round(Math.random() * (largestY - smallestY)) + smallestY;
+            } else {
+                var smallestY = replicaBoxTop + this.replicaPlaneLength + this.clientRadius;
+                var largestY = this.planeLength - this.clientRadius;;
+                y = Math.round(Math.random() * (largestY - smallestY)) + smallestY;
+            }
         }
-      }
-      console.log("Chose coordinates " + x + " and " + y);
-      return [x, y];
+        console.log("Chose coordinates " + x + " and " + y);
+        return [x, y];
     }
 
     removeClient(clientId) {

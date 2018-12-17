@@ -1,4 +1,6 @@
-import { TableUpdater} from "./table_updater.js"
+import {
+    TableUpdater
+} from "./table_updater.js"
 import {
     Message
 } from "./message.js"
@@ -140,7 +142,7 @@ function init() {
 
 function draw() {
     if (paused) {
-      return;
+        return;
     }
 
     window.requestAnimationFrame(draw);
@@ -163,12 +165,12 @@ function draw() {
 
 // Implement a rudimentary pause button for debugging.
 $(document).ready(function() {
-  $("#pause-button").click(function() {
-    paused = !paused;
-    if (!paused) {
-      window.requestAnimationFrame(draw);
-    }
-  });
+    $("#pause-button").click(function() {
+        paused = !paused;
+        if (!paused) {
+            window.requestAnimationFrame(draw);
+        }
+    });
 });
 
 init();

@@ -86,7 +86,7 @@ class Replica extends Entity {
     }
 
     isLeader() {
-      return this.nextIndex!= null;
+        return this.nextIndex != null;
     }
 
     handleFrame() {
@@ -161,15 +161,15 @@ class Replica extends Entity {
     }
 
     handleDataRequest(msg) {
-      // Ignore data requests if we are not the leader.
-      // TODO: Consider request forwarding.
-      if (!this.isLeader()) {
-        return;
-      }
+        // Ignore data requests if we are not the leader.
+        // TODO: Consider request forwarding.
+        if (!this.isLeader()) {
+            return;
+        }
 
-      this.addToLog(msg.data);
-      this.logIndexToClient[this.log.length - 1] = msg.sender;
-      this.sendAppendNewEntries([msg.data]);
+        this.addToLog(msg.data);
+        this.logIndexToClient[this.log.length - 1] = msg.sender;
+        this.sendAppendNewEntries([msg.data]);
     }
 
     handleAppendEntriesRequest(msg) {
@@ -223,7 +223,7 @@ class Replica extends Entity {
     }
 
     handleAppendEntriesResponse(msg) {
-      console.log("Replica " + this.id + " received append entries response.");
+        console.log("Replica " + this.id + " received append entries response.");
     }
 
     handleRequestVoteRequest(msg) {
@@ -293,37 +293,37 @@ class Replica extends Entity {
     }
 
     sendAppendNewEntries(entries) {
-      var prevLogIndex = this.log.length == 0 ? null : this.log.length;
-      var prevLogTerm = this.log.length == 0 ? null : this.log[prevLogIndex];
+        var prevLogIndex = this.log.length == 0 ? null : this.log.length;
+        var prevLogTerm = this.log.length == 0 ? null : this.log[prevLogIndex];
 
-      this.replicaIds.forEach(function(replicaId) {
-          // TODO: Generalize this logic instead of repeating it.
-          if (replicaId == this.id) {
-              return;
-          }
+        this.replicaIds.forEach(function(replicaId) {
+            // TODO: Generalize this logic instead of repeating it.
+            if (replicaId == this.id) {
+                return;
+            }
 
-          var msg = this.appendEntriesRequestFactory.get(
-              this.currentTerm, this.id, prevLogIndex, prevLogTerm, entries, this.commitIndex, replicaId);
-          msg.init();
-          this.messageManager.schedule(msg);
-      }.bind(this));
+            var msg = this.appendEntriesRequestFactory.get(
+                this.currentTerm, this.id, prevLogIndex, prevLogTerm, entries, this.commitIndex, replicaId);
+            msg.init();
+            this.messageManager.schedule(msg);
+        }.bind(this));
 
-      this.framesSinceAppendEntries = 0;
+        this.framesSinceAppendEntries = 0;
     }
 
     sendHeartbeat() {
-      this.sendAppendNewEntries([]);
+        this.sendAppendNewEntries([]);
     }
 
     addToLog(value) {
-      this.log.push(value);
-      this.tableUpdater.insertValue(this.id, this.log.length - 1, value);
+        this.log.push(value);
+        this.tableUpdater.insertValue(this.id, this.log.length - 1, value);
     }
 
     purgeLog(newLastIndex) {
-      this.log = this.log.slice(0, latestNewIndex);
+        this.log = this.log.slice(0, latestNewIndex);
 
-      // TODO: Update the table via table updater.
+        // TODO: Update the table via table updater.
     }
 }
 

@@ -13,7 +13,7 @@ class ClientFactory {
 
     get(x, y) {
         return new Client(this.makeid(), this.radius, x, y, this.messageManager, this.dataRequestFactory,
-          this.avgFramesBetweenMessages, this.dataRequestRouter);
+            this.avgFramesBetweenMessages, this.dataRequestRouter);
     }
 
     makeid() {
