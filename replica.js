@@ -18,7 +18,7 @@ import {
 } from "./data_request.js"
 
 class Replica extends Entity {
-    constructor(id, radius, x, y, replicaIds, requestVoteRequestFactory, requestVoteResponseFactory, appendEntriesRequestFactory, appendEntriesResponseFactory, messageManager) {
+    constructor(id, radius, x, y, replicaIds, requestVoteRequestFactory, requestVoteResponseFactory, appendEntriesRequestFactory, appendEntriesResponseFactory, messageManager, tableUpdater) {
         super(radius);
         this.id = id;
         this.radius = radius;
@@ -30,6 +30,7 @@ class Replica extends Entity {
         this.appendEntriesRequestFactory = appendEntriesRequestFactory;
         this.appendEntriesResponseFactory = appendEntriesResponseFactory;
         this.messageManager = messageManager;
+        this.tableUpdater = tableUpdater;
 
         // Persistent state.
         this.currentTerm = 0;
@@ -166,8 +167,7 @@ class Replica extends Entity {
         return;
       }
 
-      this.log.push(msg.data);
-
+      this.addToLog(msg.data);
       this.logIndexToClient[this.log.length - 1] = msg.sender;
       this.sendAppendNewEntries([msg.data]);
     }
@@ -194,14 +194,13 @@ class Replica extends Entity {
                 if (latestNewIndex > this.log.length - 1) {
                     // We are beyond the length of our log, add the entry.
                     console.log("Replica " + this.id + " pushed " + leaderEntry + " to log.");
-                    this.log.push(leaderEntry);
+                    this.addToLog(leaderEntry);
                 } else if (this.log[latestNewIndex] != leaderEntry) {
                     console.log("Replica " + this.id + " found a logs mismatch at index: " + this.latestNewIndex);
-                    // There is a mistmatch. Rip out this log entry and all newer.
-                    this.log = this.log.slice(0, latestNewIndex);
+                    this.purgeLog(newLastIndex);
 
                     console.log("Replica " + this.id + " pushed " + leaderEntry + " to log.");
-                    this.log.push(leaderEntry);
+                    this.addToLog(leaderEntry);
                 }
             }
 
@@ -314,6 +313,17 @@ class Replica extends Entity {
 
     sendHeartbeat() {
       this.sendAppendNewEntries([]);
+    }
+
+    addToLog(value) {
+      this.log.push(value);
+      this.tableUpdater.insertValue(this.id, this.log.length - 1, value);
+    }
+
+    purgeLog(newLastIndex) {
+      this.log = this.log.slice(0, latestNewIndex);
+
+      // TODO: Update the table via table updater.
     }
 }
 

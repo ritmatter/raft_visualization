@@ -16,7 +16,7 @@ class RequestVoteResponse extends Message {
       // TODO: Remove hackiness by making circle configurable.
       this.el.remove();
 
-      var img = this.voteGranted ? "check.svg" : "x.svg";
+      var img = this.voteGranted ? "icons/check.svg" : "icons/x.svg";
       this.icon = this.group.append("svg:image")
         .attr("width", 2 * this.radius)
         .attr("height", 2 * this.radius)

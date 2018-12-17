@@ -1,3 +1,4 @@
+import { TableUpdater} from "./table_updater.js"
 import {
     Message
 } from "./message.js"
@@ -44,6 +45,7 @@ var replicaIds = [];
 var replicas = [] // A list of the replicas.
 var entities = {}; // A map from entity ID to entity.
 
+var tableUpdater;
 var requestVoteRequestFactory;
 var requestVoteResponseFactory;
 var appendEntriesRequestFactory;
@@ -81,6 +83,8 @@ var MIN_CLIENT_FRAME_LIFE = 600;
 var MAX_CLIENT_FRAME_LIFE = 900;
 
 function init() {
+    tableUpdater = new TableUpdater($("#logs-table")[0], 3);
+
     // Initialize the size of the SVG plane.
     var svg = d3.select("svg");
     svg.attr("width", BOX_LENGTH);
@@ -108,25 +112,25 @@ function init() {
     clientFactory = new ClientFactory(CLIENT_RADIUS, messageManager, dataRequestFactory, AVG_FRAMES_BETWEEN_DATA, dataRequestRouter);
     clientManager = new ClientManager(entities, clientFactory, MAX_CLIENTS, AVG_FRAMES_BETWEEN_CLIENTS, MIN_CLIENT_FRAME_LIFE, MAX_CLIENT_FRAME_LIFE, BOX_LENGTH, REPLICA_BOX_LENGTH, CLIENT_RADIUS);
 
-    replica1 = new Replica('0', REPLICA_RADIUS, coordsBl[0], coordsBl[1], replicaIds, requestVoteRequestFactory,
+    replica1 = new Replica(0, REPLICA_RADIUS, coordsBl[0], coordsBl[1], replicaIds, requestVoteRequestFactory,
         requestVoteResponseFactory, appendEntriesRequestFactory, appendEntriesResponseFactory,
-        messageManager);
-    replicaIds.push('0');
-    entities['0'] = replica1;
+        messageManager, tableUpdater);
+    replicaIds.push(0);
+    entities[0] = replica1;
     replicas.push(replica1);
 
-    replica2 = new Replica('1', REPLICA_RADIUS, coordsBr[0], coordsBr[1], replicaIds, requestVoteRequestFactory,
+    replica2 = new Replica(1, REPLICA_RADIUS, coordsBr[0], coordsBr[1], replicaIds, requestVoteRequestFactory,
         requestVoteResponseFactory, appendEntriesRequestFactory, appendEntriesResponseFactory,
-        messageManager);
-    replicaIds.push('1');
-    entities['1'] = replica2;
+        messageManager, tableUpdater);
+    replicaIds.push(1);
+    entities[1] = replica2;
     replicas.push(replica2);
 
-    replica3 = new Replica('2', REPLICA_RADIUS, coordsTop[0], coordsTop[1], replicaIds, requestVoteRequestFactory,
+    replica3 = new Replica(2, REPLICA_RADIUS, coordsTop[0], coordsTop[1], replicaIds, requestVoteRequestFactory,
         requestVoteResponseFactory, appendEntriesRequestFactory, appendEntriesResponseFactory,
-        messageManager);
-    replicaIds.push('2');
-    entities['2'] = replica3;
+        messageManager, tableUpdater);
+    replicaIds.push(2);
+    entities[2] = replica3;
     replicas.push(replica3);
 
     Object.keys(replicaIds).forEach(function(replicaId) {
@@ -157,12 +161,15 @@ function draw() {
     }
 };
 
-function pause() {
-  paused = !paused;
-  if (!paused) {
-    window.requestAnimatinFrame(draw);
-  }
-}
+// Implement a rudimentary pause button for debugging.
+$(document).ready(function() {
+  $("#pause-button").click(function() {
+    paused = !paused;
+    if (!paused) {
+      window.requestAnimationFrame(draw);
+    }
+  });
+});
 
 init();
 window.requestAnimationFrame(draw);

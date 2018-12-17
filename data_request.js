@@ -2,6 +2,7 @@ import {
     Message,
     MessageFactory
 } from "./message.js"
+import { getDataIcon} from "./utils.js"
 
 class DataRequest extends Message {
     constructor(data, radius, x, y, vx, vy, sender, receiver) {
@@ -18,24 +19,8 @@ class DataRequest extends Message {
       this.icon = this.group.append("svg:image")
         .attr("width", 2 * this.radius)
         .attr("height", 2 * this.radius)
-        .attr("xlink:href", this.getIconImg());
+        .attr("xlink:href", getDataIcon(this.data));
       this.setImgPosition();
-    }
-
-    getIconImg() {
-      switch (this.data) {
-        case "SPADE":
-          return "spade.svg";
-        case "CLUB":
-          return "club.svg";
-        case "DIAMOND":
-          return "diamond.svg";
-        case "HEART":
-          return "heart.svg";
-        default:
-          throw Error("No image for data type: " + this.data);
-          return;
-      }
     }
 
     handleFrame() {

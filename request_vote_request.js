@@ -20,7 +20,7 @@ class RequestVoteRequest extends Message {
       this.icon = this.group.append("svg:image")
         .attr("width", 2 * this.radius)
         .attr("height", 2 * this.radius)
-        .attr("xlink:href", "question.svg");
+        .attr("xlink:href", "icons/question.svg");
       this.setImgPosition();
     }
 

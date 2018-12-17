@@ -4,6 +4,12 @@ td {
     height: 30px;
 }
 
+.table-data {
+  background-color: black;
+  width: 30px;
+  height: 30px;
+}
+
 .animation {
     background-color: #FFFFF0;
     float: left;
@@ -12,18 +18,6 @@ td {
 .logs {
     border-radius: 5px;
     border: 1px solid grey;
-}
-
-.red-data {
-    background-color: red;
-}
-
-.blue-data {
-    background-color: blue;
-}
-
-.green-data {
-    background-color: green;
 }
 
 .timer-top {

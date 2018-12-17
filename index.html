@@ -3,8 +3,8 @@
 
 <head>
     <link rel="stylesheet" href="styles.css">
+    <script src="jquery-3.3.1.min.js"></script>
     <script src="d3.min.js" charset="utf-8"></script>
-    <script type="module" src="message.js"></script>
     <script type="module" src="main.js"></script>
 </head>
 
@@ -14,24 +14,15 @@
     </div>
 
     <div class="logs-holder">
-        <table class="logs">
+        <table id="logs-table" class="logs">
             <tr>
                 <th>1</th>
                 <th>2</th>
                 <th>3</th>
             </tr>
-            <tr>
-                <td class="red-data"></td>
-                <td class="blue-data"></td>
-                <td class="green-data"></td>
-            </tr>
-            <tr>
-                <td class="blue-data"></td>
-                <td class="blue-data"></td>
-                <td class="blue-data"></td>
-            </tr>
         </table>
     </div>
+    <button id="pause-button" type="button">Pause</button>
 </body>
 
 </html>
