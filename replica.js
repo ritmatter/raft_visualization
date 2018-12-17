@@ -167,8 +167,9 @@ class Replica extends Entity {
       }
 
       this.log.push(msg.data);
+
       this.logIndexToClient[this.log.length - 1] = msg.sender;
-      this.appendNewEntries([msg.data]);
+      this.sendAppendNewEntries([msg.data]);
     }
 
     handleAppendEntriesRequest(msg) {
@@ -192,10 +193,14 @@ class Replica extends Entity {
                 var leaderEntry = msg.entries[i];
                 if (latestNewIndex > this.log.length - 1) {
                     // We are beyond the length of our log, add the entry.
+                    console.log("Replica " + this.id + " pushed " + leaderEntry + " to log.");
                     this.log.push(leaderEntry);
                 } else if (this.log[latestNewIndex] != leaderEntry) {
+                    console.log("Replica " + this.id + " found a logs mismatch at index: " + this.latestNewIndex);
                     // There is a mistmatch. Rip out this log entry and all newer.
                     this.log = this.log.slice(0, latestNewIndex);
+
+                    console.log("Replica " + this.id + " pushed " + leaderEntry + " to log.");
                     this.log.push(leaderEntry);
                 }
             }
@@ -203,13 +208,14 @@ class Replica extends Entity {
             // Reset the commit index if necessary.
             if (msg.leaderCommit > this.commitIndex) {
                 this.commitIndex = Math.min(msg.leaderCommit, latestNewIndex);
+                console.log("Replica " + this.id + " set commit index to " + this.commitIndex);
             }
 
             // Reset the election timer.
             this.resetElectionTimer();
-            console.log("Replica " + this.id + " received successful heartbeat.");
+            console.log("Replica " + this.id + " successfully handled append entries.");
         } else {
-            console.log("Replica " + this.id + " received unsuccessful heartbeat.");
+            console.log("Replica " + this.id + " was unsuccessful appending entries.");
         }
 
         var res = this.appendEntriesResponseFactory.get(this.currentTerm, success, this.id, msg.sender);
@@ -217,7 +223,9 @@ class Replica extends Entity {
         this.messageManager.schedule(res);
     }
 
-    handleAppendEntriesResponse(msg) {}
+    handleAppendEntriesResponse(msg) {
+      console.log("Replica " + this.id + " received append entries response.");
+    }
 
     handleRequestVoteRequest(msg) {
         var voteGranted;
@@ -285,7 +293,7 @@ class Replica extends Entity {
         }
     }
 
-    appendNewEntries(entries) {
+    sendAppendNewEntries(entries) {
       var prevLogIndex = this.log.length == 0 ? null : this.log.length;
       var prevLogTerm = this.log.length == 0 ? null : this.log[prevLogIndex];
 
@@ -305,7 +313,7 @@ class Replica extends Entity {
     }
 
     sendHeartbeat() {
-      this.appendNewEntries([]);
+      this.sendAppendNewEntries([]);
     }
 }
 

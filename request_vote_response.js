@@ -9,6 +9,33 @@ class RequestVoteResponse extends Message {
         this.term = term;
         this.voteGranted = voteGranted;
     }
+
+    init() {
+      super.init();
+
+      // TODO: Remove hackiness by making circle configurable.
+      this.el.remove();
+
+      var img = this.voteGranted ? "check.svg" : "x.svg";
+      this.icon = this.group.append("svg:image")
+        .attr("width", 2 * this.radius)
+        .attr("height", 2 * this.radius)
+        .attr("xlink:href", img);
+      this.setImgPosition();
+    }
+
+    handleFrame() {
+      super.handleFrame();
+      this.setImgPosition();
+    }
+
+    setImgPosition() {
+      var imgX = this.x - this.radius;
+      var imgY = this.y - this.radius;
+      this.icon.attr(
+        "transform", "translate(" + imgX + ", " + imgY + ")");
+    }
+
 }
 
 class RequestVoteResponseFactory extends MessageFactory {

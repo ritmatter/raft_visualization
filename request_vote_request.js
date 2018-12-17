@@ -10,6 +10,32 @@ class RequestVoteRequest extends Message {
         this.lastLogIndex = lastLogIndex;
         this.lastLogTerm = lastLogTerm;
     }
+
+    init() {
+      super.init();
+
+      // TODO: Remove hackiness by making circle configurable.
+      this.el.remove();
+
+      this.icon = this.group.append("svg:image")
+        .attr("width", 2 * this.radius)
+        .attr("height", 2 * this.radius)
+        .attr("xlink:href", "question.svg");
+      this.setImgPosition();
+    }
+
+    setImgPosition() {
+      var imgX = this.x - this.radius;
+      var imgY = this.y - this.radius;
+      this.icon.attr(
+        "transform", "translate(" + imgX + ", " + imgY + ")");
+    }
+
+    handleFrame() {
+      super.handleFrame();
+      this.setImgPosition();
+    }
+
 }
 
 class RequestVoteRequestFactory extends MessageFactory {

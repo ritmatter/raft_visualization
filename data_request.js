@@ -12,11 +12,42 @@ class DataRequest extends Message {
     init() {
       super.init();
 
-      // TODO: Attempt to make these messages have better data.
-      //this.group.append("svg:image")
-      //  .attr("width", 2 * this.radius)
-      //  .attr("height", 2 * this.radius)
-      //  .attr("xlink:href", "spade.svg");
+      // TODO: Remove hackiness by making circle configurable.
+      this.el.remove();
+
+      this.icon = this.group.append("svg:image")
+        .attr("width", 2 * this.radius)
+        .attr("height", 2 * this.radius)
+        .attr("xlink:href", this.getIconImg());
+      this.setImgPosition();
+    }
+
+    getIconImg() {
+      switch (this.data) {
+        case "SPADE":
+          return "spade.svg";
+        case "CLUB":
+          return "club.svg";
+        case "DIAMOND":
+          return "diamond.svg";
+        case "HEART":
+          return "heart.svg";
+        default:
+          throw Error("No image for data type: " + this.data);
+          return;
+      }
+    }
+
+    handleFrame() {
+      super.handleFrame();
+      this.setImgPosition();
+    }
+
+    setImgPosition() {
+      var imgX = this.x - this.radius;
+      var imgY = this.y - this.radius;
+      this.icon.attr(
+        "transform", "translate(" + imgX + ", " + imgY + ")");
     }
 }
 

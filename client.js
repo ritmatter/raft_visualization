@@ -50,7 +50,9 @@ class Client extends Entity {
         return;
       }
 
-      var msg = this.dataRequestFactory.get("0", this.id, leader);
+      var dataTypes = ["SPADE", "CLUB", "HEART", "DIAMOND"];
+      var dataType = dataTypes[Math.round(Math.random() * (dataTypes.length - 1))];
+      var msg = this.dataRequestFactory.get(dataType, this.id, leader);
       msg.init();
       this.messageManager.schedule(msg);
     }

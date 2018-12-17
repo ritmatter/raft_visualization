@@ -32,6 +32,7 @@ import {
     ClientFactory
 } from "./client_factory.js"
 
+var paused = false;
 var fps = 60;
 var time = new Date().getTime();
 var interval = 1000 / fps;
@@ -67,7 +68,7 @@ var REPLICA_BOX_PADDING = 20;
 // The radius of an individual replica.
 var REPLICA_RADIUS = 30;
 
-var MESSAGE_RADIUS = 10;
+var MESSAGE_RADIUS = 16;
 
 var MESSAGE_VELOCITY = 8;
 
@@ -76,8 +77,8 @@ var CLIENT_RADIUS = 20;
 var AVG_FRAMES_BETWEEN_DATA = 120;
 var MAX_CLIENTS = 1;
 var AVG_FRAMES_BETWEEN_CLIENTS = 60;
-var MIN_CLIENT_FRAME_LIFE = 300;
-var MAX_CLIENT_FRAME_LIFE = 600;
+var MIN_CLIENT_FRAME_LIFE = 600;
+var MAX_CLIENT_FRAME_LIFE = 900;
 
 function init() {
     // Initialize the size of the SVG plane.
@@ -134,6 +135,10 @@ function init() {
 }
 
 function draw() {
+    if (paused) {
+      return;
+    }
+
     window.requestAnimationFrame(draw);
 
     var now = new Date().getTime();
@@ -151,6 +156,13 @@ function draw() {
 
     }
 };
+
+function pause() {
+  paused = !paused;
+  if (!paused) {
+    window.requestAnimatinFrame(draw);
+  }
+}
 
 init();
 window.requestAnimationFrame(draw);
