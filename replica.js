@@ -18,13 +18,13 @@ import {
 } from "./data_request.js"
 
 class Replica extends Entity {
-    constructor(id, radius, x, y, replicaIds, requestVoteRequestFactory, requestVoteResponseFactory, appendEntriesRequestFactory, appendEntriesResponseFactory, messageManager, tableUpdater) {
+    constructor(id, radius, x, y, otherReplicaIds, requestVoteRequestFactory, requestVoteResponseFactory, appendEntriesRequestFactory, appendEntriesResponseFactory, messageManager, tableUpdater) {
         super(radius);
         this.id = id;
         this.radius = radius;
         this.x = x;
         this.y = y;
-        this.replicaIds = replicaIds;
+        this.otherReplicaIds = otherReplicaIds;
         this.requestVoteRequestFactory = requestVoteRequestFactory;
         this.requestVoteResponseFactory = requestVoteResponseFactory;
         this.appendEntriesRequestFactory = appendEntriesRequestFactory;
@@ -124,11 +124,7 @@ class Replica extends Entity {
 
         // Because messages need to travel in the UI, this is analogous
         // to being in parallel. They are all sent in single frame.
-        this.replicaIds.forEach(function(replicaId) {
-            if (replicaId == this.id) {
-                return;
-            }
-
+        this.otherReplicaIds.forEach(function(replicaId) {
             this.requestVote(replicaId);
         }.bind(this));
 
@@ -261,7 +257,7 @@ class Replica extends Entity {
           this.matchIndex[msg.sender] = request.prevLogIndex + request.entries.length;
 
           // Determine if any entries can be committed.
-          var numReplicas = this.replicaIds.length;
+          var numReplicas = this.otherReplicaIds.length;
           var majority = Math.round(numReplicas / 2) + 1;
           for (var i = 1; i < request.entries.length + 1; i++) {
             var logIndex = i + request.prevLogIndex;
@@ -347,15 +343,13 @@ class Replica extends Entity {
             this.voteCount++;
 
             // Become leader if we have received a majority.
-            if (this.voteCount > Math.round(this.replicaIds.length / 2 + 0.5)) {
+            if (this.voteCount > Math.round(this.otherReplicaIds.length / 2 + 0.5)) {
                 this.circle.attr("class", "replica leader");
 
                 var lastLogIndex = this.log.length == 0 ? 0 : this.log.length - 1;
                 this.nextIndex = [];
                 this.matchIndex = [];
-                this.replicaIds.forEach(function(replicaId, lastLogIndex) {
-                    if (replicaId == this.id) { return; }
-
+                this.otherReplicaIds.forEach(function(replicaId, lastLogIndex) {
                     this.nextIndex.push(lastLogIndex + 1);
                     this.matchIndex.push(0);
                 }.bind(this));
@@ -383,12 +377,7 @@ class Replica extends Entity {
         var prevLogIndex = this.log.length < 2 ? null : this.log.length - 2;
         var prevLogTerm = prevLogIndex == null ? null : this.log[prevLogIndex][1];
 
-        this.replicaIds.forEach(function(replicaId) {
-            // TODO: Generalize this logic instead of repeating it.
-            if (replicaId == this.id) {
-                return;
-            }
-
+        this.otherReplicaIds.forEach(function(replicaId) {
             var msg = this.appendEntriesRequestFactory.get(
                 this.currentTerm, this.id, prevLogIndex, prevLogTerm, entries, this.commitIndex, replicaId);
             this.pendingRequests[msg.id] = msg;

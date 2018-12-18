@@ -42,7 +42,6 @@ var interval = 1000 / fps;
 var color = "black";
 
 var replica1, replica2, replica3;
-var replicaIds = [];
 
 var replicas = [] // A list of the replicas.
 var entities = {}; // A map from entity ID to entity.
@@ -114,30 +113,26 @@ function init() {
     clientFactory = new ClientFactory(CLIENT_RADIUS, messageManager, dataRequestFactory, AVG_FRAMES_BETWEEN_DATA, dataRequestRouter);
     clientManager = new ClientManager(entities, clientFactory, MAX_CLIENTS, AVG_FRAMES_BETWEEN_CLIENTS, MIN_CLIENT_FRAME_LIFE, MAX_CLIENT_FRAME_LIFE, BOX_LENGTH, REPLICA_BOX_LENGTH, CLIENT_RADIUS);
 
-    replica1 = new Replica(0, REPLICA_RADIUS, coordsBl[0], coordsBl[1], replicaIds, requestVoteRequestFactory,
+    replica1 = new Replica(0, REPLICA_RADIUS, coordsBl[0], coordsBl[1], [1, 2], requestVoteRequestFactory,
         requestVoteResponseFactory, appendEntriesRequestFactory, appendEntriesResponseFactory,
         messageManager, tableUpdater);
-    replicaIds.push(0);
     entities[0] = replica1;
     replicas.push(replica1);
+    replica1.init();
 
-    replica2 = new Replica(1, REPLICA_RADIUS, coordsBr[0], coordsBr[1], replicaIds, requestVoteRequestFactory,
+    replica2 = new Replica(1, REPLICA_RADIUS, coordsBr[0], coordsBr[1], [0, 2], requestVoteRequestFactory,
         requestVoteResponseFactory, appendEntriesRequestFactory, appendEntriesResponseFactory,
         messageManager, tableUpdater);
-    replicaIds.push(1);
     entities[1] = replica2;
     replicas.push(replica2);
+    replica2.init();
 
-    replica3 = new Replica(2, REPLICA_RADIUS, coordsTop[0], coordsTop[1], replicaIds, requestVoteRequestFactory,
+    replica3 = new Replica(2, REPLICA_RADIUS, coordsTop[0], coordsTop[1], [0, 1], requestVoteRequestFactory,
         requestVoteResponseFactory, appendEntriesRequestFactory, appendEntriesResponseFactory,
         messageManager, tableUpdater);
-    replicaIds.push(2);
     entities[2] = replica3;
     replicas.push(replica3);
-
-    Object.keys(replicaIds).forEach(function(replicaId) {
-        entities[replicaId].init();
-    });
+    replica3.init();
 }
 
 function draw() {
