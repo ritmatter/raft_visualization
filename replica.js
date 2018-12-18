@@ -257,8 +257,8 @@ class Replica extends Entity {
         } else {
           // Reset the nextIndex for this replica, since it had the entries.
           // TODO: Figure out if these are exactly correct (probably not).
-          this.nextIndex[request.prevLogIndex + request.entries.length] + 1;
-          this.matchIndex[request.prevLogIndex + request.entries.length];
+          this.nextIndex[msg.sender] = request.prevLogIndex + request.entries.length + 1;
+          this.matchIndex[msg.sender] = request.prevLogIndex + request.entries.length;
 
           // Determine if any entries can be committed.
           var numReplicas = this.replicaIds.length;
@@ -354,7 +354,7 @@ class Replica extends Entity {
                 this.nextIndex = [];
                 this.matchIndex = [];
                 this.replicaIds.forEach(function(replicaId, lastLogIndex) {
-                    if (replicaId = this.id) { continue; }
+                    if (replicaId == this.id) { return; }
 
                     this.nextIndex.push(lastLogIndex + 1);
                     this.matchIndex.push(0);
