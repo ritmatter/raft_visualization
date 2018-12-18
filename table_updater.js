@@ -9,7 +9,7 @@ class TableUpdater {
         this.numReplicas = numReplicas;
     }
 
-    insertValue(replica, index, value) {
+    insertValue(replica, index, term, value) {
         index++;
         var row = this.tableEl.rows[index];
         if (!row) {
@@ -21,9 +21,13 @@ class TableUpdater {
         var cell = row.cells[replica];
 
         var svg = d3.select(cell).append("img")
-            .attr("width", 30)
-            .attr("height", 30)
+            .attr("class", "table-data")
             .attr("src", getDataIcon(value));
+
+        var termData = document.createElement("div");
+        termData.textContent = term;
+        termData.classList.add("table-term");
+        cell.appendChild(termData);
     }
 }
 

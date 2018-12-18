@@ -317,7 +317,7 @@ class Replica extends Entity {
 
     addToLog(value) {
         this.log.push(value);
-        this.tableUpdater.insertValue(this.id, this.log.length - 1, value);
+        this.tableUpdater.insertValue(this.id, this.log.length - 1, this.currentTerm, value);
     }
 
     purgeLog(newLastIndex) {

@@ -1,23 +1,36 @@
+.logs-holder {
+  overflow: hidden;
+  width: 200px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+td, tr {
+  border: 1px solid grey;
+}
+
 td {
-    border-radius: 2px;
-    width: 30px;
-    height: 30px;
+  width: 60px;
 }
 
 .table-data {
-  background-color: black;
-  width: 30px;
-  height: 30px;
+  width: 25px;
+  height: 25px;
+  float: left;
+  padding-left: 5px;
+}
+
+.table-term {
+  text-align: center;
+  font-size: 20px;
 }
 
 .animation {
     background-color: #FFFFF0;
     float: left;
-}
-
-.logs {
-    border-radius: 5px;
-    border: 1px solid grey;
 }
 
 .timer-top {
