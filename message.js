@@ -1,6 +1,7 @@
 // Base message class.
 class Message {
     constructor(radius, x, y, vx, vy, sender, receiver) {
+        this.id = this.makeid();
         this.radius = radius;
         this.x = x;
         this.y = y;
@@ -8,6 +9,16 @@ class Message {
         this.vy = vy;
         this.sender = sender;
         this.receiver = receiver;
+    }
+
+    makeid() {
+        var text = "";
+        var possible = "abcdefghijklmnopqrstuvwxyz";
+
+        for (var i = 0; i < 5; i++) {
+            text += possible.charAt(Math.floor(Math.random() * possible.length));
+        }
+        return text;
     }
 
     init() {

@@ -9,6 +9,9 @@ class TableUpdater {
         this.numReplicas = numReplicas;
     }
 
+    updateCommitIndex(replica, index) {
+    }
+
     insertValue(replica, index, term, value) {
         index++;
         var row = this.tableEl.rows[index];

@@ -32,9 +32,16 @@ class Replica extends Entity {
         this.messageManager = messageManager;
         this.tableUpdater = tableUpdater;
 
+        // A map from message ID to message. This is used to correlate
+        // responses with their respective requests.
+        // TODO: Apply this to all req/res pairs.
+        this.pendingRequests = {};
+
         // Persistent state.
         this.currentTerm = 0;
         this.votedFor = null;
+
+        // Each entry is an array of size 2 with data and term.
         this.log = [];
 
         // Volatile state.
@@ -130,7 +137,7 @@ class Replica extends Entity {
 
     requestVote(receiver) {
         var lastLogIndex = this.log.length > 0 ? this.log.length - 1 : 0;
-        var lastLogTerm = this.log.length > 0 ? this.log[this.log.length - 1] : 0;
+        var lastLogTerm = this.log.length > 0 ? this.log[this.log.length - 1][1] : 0;
         var msg = this.requestVoteRequestFactory.get(
             this.currentTerm, this.id, lastLogIndex, lastLogTerm, receiver);
 
@@ -172,11 +179,25 @@ class Replica extends Entity {
         this.sendAppendNewEntries([msg.data]);
     }
 
+    prevEntriesMatch(appendEntriesMsg) {
+      var prevLogIndex = appendEntriesMsg.prevLogIndex;
+      if (prevLogIndex == null || prevLogIndex < 0) {
+        return true;
+      }
+
+      var prevEntry = this.log[prevLogIndex];
+      if (!prevEntry) {
+        return false;
+      }
+
+      return prevEntry[1] == appendEntriesMsg.prevLogTerm;
+    }
+
     handleAppendEntriesRequest(msg) {
         var success = true;
         if (msg.term < this.currentTerm) {
             success = false;
-        } else if (msg.prevLogIndex != null && this.log[msg.prevLogIndex] != msg.prevLogTerm) {
+        } else if (!this.prevEntriesMatch(msg)) {
             success = false;
         }
 
@@ -195,7 +216,7 @@ class Replica extends Entity {
                     // We are beyond the length of our log, add the entry.
                     console.log("Replica " + this.id + " pushed " + leaderEntry + " to log.");
                     this.addToLog(leaderEntry);
-                } else if (this.log[latestNewIndex] != leaderEntry) {
+                } else if (this.log[latestNewIndex][0] != leaderEntry) {
                     console.log("Replica " + this.id + " found a logs mismatch at index: " + this.latestNewIndex);
                     this.purgeLog(newLastIndex);
 
@@ -217,29 +238,74 @@ class Replica extends Entity {
             console.log("Replica " + this.id + " was unsuccessful appending entries.");
         }
 
-        var res = this.appendEntriesResponseFactory.get(this.currentTerm, success, this.id, msg.sender);
+        var res = this.appendEntriesResponseFactory.get(this.currentTerm, success, this.id, msg.sender, msg.id);
         res.init();
         this.messageManager.schedule(res);
     }
 
     handleAppendEntriesResponse(msg) {
         console.log("Replica " + this.id + " received append entries response.");
+        var request = this.pendingRequests[msg.requestId];
+
+        if (!msg.success) {
+          // Decrement the nextIndex for this replica and try again.
+          // At worst, we will repeat until nextIndex is below zero and reset
+          // all log entries for the replica.
+          // TODO: Handle the case where our log term is out of date.
+          this.nextIndex[msg.sender]--;
+          this.retryAppendEntries();
+        } else {
+          // Reset the nextIndex for this replica, since it had the entries.
+          // TODO: Figure out if these are exactly correct (probably not).
+          this.nextIndex[request.prevLogIndex + request.entries.length] + 1;
+          this.matchIndex[request.prevLogIndex + request.entries.length];
+
+          // Determine if any entries can be committed.
+          var numReplicas = this.replicaIds.length;
+          var majority = Math.round(numReplicas / 2) + 1;
+          for (var i = 1; i < request.entries.length + 1; i++) {
+            var logIndex = i + request.prevLogIndex;
+
+            // If we haven't reached the commit index, then there
+            // is nothing to do, since it is already committed.
+            if (logIndex < this.commitIndex) {
+              continue;
+            }
+
+            // Only trust messages from this term to commit.
+            if (this.log[logIndex] && this.log[logIndex][1] != this.currentTerm) {
+              continue;
+            }
+
+            // Count replications, including our own.
+            var replications = 1;
+            for (var j = 0; j < this.nextIndex.length; j++) {
+              if (this.matchIndex[j] > logIndex) {
+                replications++;
+                if (replications >= majority) {
+                  this.setCommitIndex(logIndex);
+                  break;
+                }
+              }
+            }
+          }
+        }
+
+        // Remove the corresponding request from the pending map.
+        delete this.pendingRequests[msg.requestId];
     }
 
     handleRequestVoteRequest(msg) {
-        var voteGranted;
+        var voteGranted = true;
         if (msg.term < this.currentTerm) {
             // The term provided is too low.
             voteGranted = false;
         } else if (msg.term == this.currentTerm && this.votedFor != null && this.votedFor != msg.sender) {
-            // This replica has already voted for a different candidate.
+            // This replica has already voted for a different candidate in this term.
             voteGranted = false;
-        } else if (this.log[this.log.length - 1] != msg.lastLogEntry) {
-            // The last log entries for both are different, the greater index is more up-to-date.
-            voteGranted = msg.lastLogIndex > this.log.length - 1;
-        } else {
-            // The last log entries are the same, the greater index is more up-to-date.
-            voteGranted = msg.lastLogIndex >= this.log.length - 1;
+        } else if (!this.isCandidateLogUpToDate(msg)) {
+            // The candidate's log is not at least as up-to-date as this replica's.
+            voteGranted = false;
         }
 
         // After deciding whether to grant vote, set the current term if necessary.
@@ -262,6 +328,20 @@ class Replica extends Entity {
         console.log("Replica " + this.id + " became follower and voted for replica " + msg.sender);
     }
 
+    isCandidateLogUpToDate(msg) {
+      var len = this.log.length;
+      var latestIndex = len == 0 ? 0 : len - 1;
+      var latestTerm = len == 0 ? null : this.log[latestIndex][1];
+
+      if (latestTerm != msg.lastLogTerm) {
+        // The terms aren't equal to the message must have at least our last term.
+        return msg.lastLogTerm >= latestTerm;
+      } else {
+        // The latest terms are the same so the message must have at least our last index.
+        return msg.lastLogIndex >= latestIndex;
+      }
+    }
+
     handleRequestVoteResponse(msg) {
         if (msg.voteGranted) {
             this.voteCount++;
@@ -274,6 +354,8 @@ class Replica extends Entity {
                 this.nextIndex = [];
                 this.matchIndex = [];
                 this.replicaIds.forEach(function(replicaId, lastLogIndex) {
+                    if (replicaId = this.id) { continue; }
+
                     this.nextIndex.push(lastLogIndex + 1);
                     this.matchIndex.push(0);
                 }.bind(this));
@@ -292,9 +374,14 @@ class Replica extends Entity {
         }
     }
 
+    // Retry appending entries for a single replica.
+    retryAppendEntries(entries, replicaId) {
+      // TODO: Implement this.
+    }
+
     sendAppendNewEntries(entries) {
-        var prevLogIndex = this.log.length == 0 ? null : this.log.length;
-        var prevLogTerm = this.log.length == 0 ? null : this.log[prevLogIndex];
+        var prevLogIndex = this.log.length < 2 ? null : this.log.length - 2;
+        var prevLogTerm = prevLogIndex == null ? null : this.log[prevLogIndex][1];
 
         this.replicaIds.forEach(function(replicaId) {
             // TODO: Generalize this logic instead of repeating it.
@@ -304,6 +391,7 @@ class Replica extends Entity {
 
             var msg = this.appendEntriesRequestFactory.get(
                 this.currentTerm, this.id, prevLogIndex, prevLogTerm, entries, this.commitIndex, replicaId);
+            this.pendingRequests[msg.id] = msg;
             msg.init();
             this.messageManager.schedule(msg);
         }.bind(this));
@@ -315,8 +403,13 @@ class Replica extends Entity {
         this.sendAppendNewEntries([]);
     }
 
+    setCommitIndex(index) {
+      this.commitIndex = index;
+      this.tableUpdater.updateCommitIndex(this.id, index);
+    }
+
     addToLog(value) {
-        this.log.push(value);
+        this.log.push([value, this.currentTerm]);
         this.tableUpdater.insertValue(this.id, this.log.length - 1, this.currentTerm, value);
     }
 
