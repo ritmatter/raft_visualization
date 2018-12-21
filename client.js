@@ -27,10 +27,16 @@ class Client extends Entity {
         this.circle.attr("cy", this.y);
         this.circle.attr("r", this.radius);
         this.circle.attr("class", "client");
+        this.circle.attr("id", this.id);
+        this.circle.attr("display", "none");
+        this.appear();
     }
 
     cleanup() {
-        this.group.remove();
+        this.disappear();
+        window.setTimeout(function() {
+         this.group.remove();
+        }.bind(this), 1520);
     }
 
     handleFrame() {
@@ -39,9 +45,13 @@ class Client extends Entity {
         }
     }
 
-    appear() {}
+    appear() {
+      $("#" + this.id).fadeIn(1500);
+    }
 
-    disappear() {}
+    disappear() {
+      $("#" + this.id).fadeOut(1500);
+    }
 
     sendDataRequest() {
         var leader = this.dataRequestRouter.getLeader();

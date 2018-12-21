@@ -45,14 +45,19 @@ td {
     fill: green;
 }
 
-.replica {
-    fill: #007bff;
+.replica-down {
+  fill: #0a0101 !important;
 }
 
-.candidate {
-    opacity: 0.5;
+.replica-leader {
+  fill: #007bff;
 }
 
-.follower {
-    opacity: 0.2;
+.replica-candidate {
+  fill: #87bdfa;
 }
+
+.replica-follower {
+  fill: #cee5f5;
+}
+

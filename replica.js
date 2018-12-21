@@ -60,6 +60,8 @@ class Replica extends Entity {
         // Volatile state during an election.
         this.voteCount = 0;
 
+        this.up = true;
+
         // Constant for number of frames required to pass before heatbeat.
         this.MAX_FRAMES_SINCE_APPEND_ENTRIES = 120;
     }
@@ -68,11 +70,13 @@ class Replica extends Entity {
         this.resetElectionTimer();
 
         this.group = d3.select("svg").append("g");
+
         this.circle = this.group.append("circle");
         this.circle.attr("cx", this.x);
         this.circle.attr("cy", this.y);
         this.circle.attr("r", this.radius);
-        this.circle.attr("class", "replica follower");
+        this.circle.attr("class", "replica-follower");
+        this.circle.attr("id", this.id);
 
         // Create the arc that surrounds the replica.
         this.arc = d3.arc()
@@ -85,6 +89,12 @@ class Replica extends Entity {
             .attr("class", 'timer-top')
             .attr("d", this.arc)
             .attr("transform", "translate(" + this.x + "," + this.y + ")");
+
+        // Bind the function to turn a replica up or down.
+        $("#" + this.id).click(function() {
+          this.up = !this.up;
+          $("#" + this.id).toggleClass("replica-down");
+        }.bind(this));
     }
 
     resetElectionTimer() {
@@ -97,6 +107,10 @@ class Replica extends Entity {
     }
 
     handleFrame() {
+        if (!this.up) {
+          return;
+        }
+
         if (this.isLeader()) {
             this.framesSinceAppendEntries++;
             if (this.framesSinceAppendEntries == this.MAX_FRAMES_SINCE_APPEND_ENTRIES) {
@@ -117,7 +131,7 @@ class Replica extends Entity {
     }
 
     beginElection() {
-        this.circle.attr("class", "replica candidate");
+        this.circle.attr("class", "replica-candidate");
         this.currentTerm++;
         this.votedFor = this.id;
         this.voteCount++;
@@ -132,8 +146,8 @@ class Replica extends Entity {
     }
 
     requestVote(receiver) {
-        var lastLogIndex = this.log.length == 0 ? null : this.log.length - 1;
-        var lastLogTerm = this.log.length > 0 ? this.log[this.log.length - 1][1] : 0;
+        var lastLogIndex = this.log.length - 1;
+        var lastLogTerm = lastLogIndex > -1 ? this.log.length[lastLogIndex][1] : 0;
         var msg = this.requestVoteRequestFactory.get(
             this.currentTerm, this.id, lastLogIndex, lastLogTerm, receiver);
 
@@ -142,6 +156,8 @@ class Replica extends Entity {
     }
 
     handleMessage(msg) {
+        if (!this.up) { return; }
+
         switch (msg.constructor) {
             case RequestVoteRequest:
                 this.handleRequestVoteRequest(msg);
@@ -177,7 +193,7 @@ class Replica extends Entity {
 
     prevEntriesMatch(appendEntriesMsg) {
       var prevLogIndex = appendEntriesMsg.prevLogIndex;
-      if (prevLogIndex == null || prevLogIndex < 0) {
+      if (prevLogIndex < 0) {
         return true;
       }
 
@@ -200,6 +216,7 @@ class Replica extends Entity {
         // Update the current term if necessary.
         if (msg.term > this.currentTerm) {
             this.currentTerm = msg.term;
+            this.becomeFollower();
         }
 
         if (success) {
@@ -255,9 +272,10 @@ class Replica extends Entity {
           // Decrement the nextIndex for this replica and try again.
           // At worst, we will repeat until nextIndex is below zero and reset
           // all log entries for the replica.
-          // TODO: Handle the case where our log term is out of date.
-          this.nextIndex[msg.sender]--;
-          this.retryAppendEntries();
+          if (this.nextIndex[msg.sender] > 0) {
+            this.nextIndex[msg.sender]--;
+          }
+          this.retryAppendEntries(msg.sender);
         } else {
           // Reset the nextIndex for this replica, since it had the entries.
           // TODO: Figure out if these are exactly correct (probably not).
@@ -333,7 +351,7 @@ class Replica extends Entity {
     }
 
     becomeFollower() {
-      this.circle.attr("class", "replica follower");
+      this.circle.attr("class", "replica-follower");
       this.nextIndex = null;
       this.matchIndex = null;
       this.framesSinceAppendEntries = null;
@@ -360,9 +378,9 @@ class Replica extends Entity {
             // Become leader if we have received a majority.
             var majority = Math.round((this.otherReplicaIds.length + 1) / 2);
             if (this.voteCount >= majority) {
-                this.circle.attr("class", "replica leader");
+                this.circle.attr("class", "replica-leader");
 
-                var lastLogIndex = this.log.length == 0 ? null : this.log.length - 1;
+                var lastLogIndex = this.log.length - 1;
 
                 this.nextIndex = [0];
                 this.matchIndex = [0];
@@ -371,7 +389,7 @@ class Replica extends Entity {
                     this.matchIndex.push(0);
                 }.bind(this));
 
-                var nextIndex = lastLogIndex == null ? 0 : lastLogIndex + 1;
+                var nextIndex = lastLogIndex + 1;
                 for (var i = 0; i < this.otherReplicaIds.length; i++) {
                     this.nextIndex[i] = nextIndex;
                 };
@@ -391,13 +409,24 @@ class Replica extends Entity {
     }
 
     // Retry appending entries for a single replica.
-    retryAppendEntries(entries, replicaId) {
-      // TODO: Implement this.
+    retryAppendEntries(replicaId) {
+      var prevLogIndex = this.nextIndex[replicaId] - 1;
+      var prevLogTerm = prevLogIndex < 0 ? null : this.log[prevLogIndex][1];
+
+      var entries = [];
+      for (var i = prevLogIndex + 1; i < this.log.length; i++) {
+        entries.push(this.log[i][0]);
+      }
+      var msg = this.appendEntriesRequestFactory.get(
+          this.currentTerm, this.id, prevLogIndex, prevLogTerm, entries, this.commitIndex, replicaId);
+      this.pendingRequests[msg.id] = msg;
+      msg.init();
+      this.messageManager.schedule(msg);
     }
 
     sendAppendNewEntries(entries) {
-        var prevLogIndex = this.log.length < 2 ? null : this.log.length - 2;
-        var prevLogTerm = prevLogIndex == null ? null : this.log[prevLogIndex][1];
+        var prevLogIndex = this.log.length < 2 ? -1 : this.log.length - 2;
+        var prevLogTerm = prevLogIndex < 0 ? null : this.log[prevLogIndex][1];
 
         this.otherReplicaIds.forEach(function(replicaId) {
             var msg = this.appendEntriesRequestFactory.get(
