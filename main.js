@@ -84,12 +84,13 @@ var MIN_CLIENT_FRAME_LIFE = 600;
 var MAX_CLIENT_FRAME_LIFE = 900;
 
 function init() {
-    tableUpdater = new TableUpdater($("#logs-table")[0], 3);
+    tableUpdater = new TableUpdater(3);
 
     // Initialize the size of the SVG plane.
     var svg = d3.select("svg");
     svg.attr("width", BOX_LENGTH);
     svg.attr("height", BOX_LENGTH);
+    $("#logs-table").height(BOX_LENGTH);
 
     var animationCenter = BOX_LENGTH / 2;
     var replicaCircleRadius = REPLICA_BOX_LENGTH / 2 - REPLICA_RADIUS - REPLICA_BOX_PADDING;

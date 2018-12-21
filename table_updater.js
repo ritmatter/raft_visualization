@@ -4,14 +4,13 @@ import {
 
 // Updates the table of logs for the replicas.
 class TableUpdater {
-    constructor(tableEl, numReplicas) {
-        this.tableEl = tableEl;
+    constructor(numReplicas) {
+        this.tableEl = $("#logs-table-body")[0];
         this.numReplicas = numReplicas;
     }
 
     updateCommitIndex(replica, index) {
-      index++;
-      for (var i = 1; i <= index; i++) {
+      for (var i = 0; i <= index; i++) {
         var row = this.tableEl.rows[index];
         if (!row) {
           throw Error("Cannot commit an index that is not in table.");
@@ -23,7 +22,6 @@ class TableUpdater {
     }
 
     insertValue(replica, index, term, value) {
-        index++;
         var row = this.tableEl.rows[index];
         if (!row) {
             row = this.tableEl.insertRow(index);

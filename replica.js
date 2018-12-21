@@ -147,7 +147,7 @@ class Replica extends Entity {
 
     requestVote(receiver) {
         var lastLogIndex = this.log.length - 1;
-        var lastLogTerm = lastLogIndex > -1 ? this.log.length[lastLogIndex][1] : 0;
+        var lastLogTerm = lastLogIndex > -1 ? this.log[lastLogIndex][1] : 0;
         var msg = this.requestVoteRequestFactory.get(
             this.currentTerm, this.id, lastLogIndex, lastLogTerm, receiver);
 

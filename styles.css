@@ -3,6 +3,8 @@
 }
 
 .logs-holder {
+  border: 1px solid grey;
+  border-radius: 5px;
   overflow: hidden;
   width: 200px;
 }
@@ -10,6 +12,14 @@
 table {
   width: 100%;
   border-collapse: collapse;
+}
+
+tbody {
+  overflow-y: auto;
+}
+
+tr {
+  height: 30px;
 }
 
 td, tr {
