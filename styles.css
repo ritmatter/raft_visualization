@@ -1,3 +1,7 @@
+.committed {
+  background-color: grey;
+}
+
 .logs-holder {
   overflow: hidden;
   width: 200px;

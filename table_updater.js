@@ -10,6 +10,16 @@ class TableUpdater {
     }
 
     updateCommitIndex(replica, index) {
+      index++;
+      for (var i = 1; i <= index; i++) {
+        var row = this.tableEl.rows[index];
+        if (!row) {
+          throw Error("Cannot commit an index that is not in table.");
+        }
+
+        var replicaCell = row.cells[replica];
+        replicaCell.classList.add("committed");
+      }
     }
 
     insertValue(replica, index, term, value) {

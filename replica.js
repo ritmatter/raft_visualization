@@ -45,8 +45,8 @@ class Replica extends Entity {
         this.log = [];
 
         // Volatile state.
-        this.commitIndex = 0;
-        this.lastApplied = 0;
+        this.commitIndex = -1;
+        this.lastApplied = -1;
 
         // Volatile leader state, only set if this replica is the leader.
         this.nextIndex = null;
@@ -132,7 +132,7 @@ class Replica extends Entity {
     }
 
     requestVote(receiver) {
-        var lastLogIndex = this.log.length > 0 ? this.log.length - 1 : 0;
+        var lastLogIndex = this.log.length == 0 ? null : this.log.length - 1;
         var lastLogTerm = this.log.length > 0 ? this.log[this.log.length - 1][1] : 0;
         var msg = this.requestVoteRequestFactory.get(
             this.currentTerm, this.id, lastLogIndex, lastLogTerm, receiver);
@@ -243,7 +243,15 @@ class Replica extends Entity {
         console.log("Replica " + this.id + " received append entries response.");
         var request = this.pendingRequests[msg.requestId];
 
-        if (!msg.success) {
+        // Check if the failure was due to a later term.
+        if (msg.term > this.currentTerm) {
+          this.currentTerm = msg.term;
+          this.becomeFollower();
+        }
+
+        if (!this.isLeader()) {
+          // Nothing to do if we are not the leader anymore. Skip to the end.
+        } else if (!msg.success) {
           // Decrement the nextIndex for this replica and try again.
           // At worst, we will repeat until nextIndex is below zero and reset
           // all log entries for the replica.
@@ -253,18 +261,19 @@ class Replica extends Entity {
         } else {
           // Reset the nextIndex for this replica, since it had the entries.
           // TODO: Figure out if these are exactly correct (probably not).
-          this.nextIndex[msg.sender] = request.prevLogIndex + request.entries.length + 1;
-          this.matchIndex[msg.sender] = request.prevLogIndex + request.entries.length;
+          var prevLogIndex = request.prevLogIndex != null ? request.prevLogIndex : -1;
+          this.nextIndex[msg.sender] = prevLogIndex + request.entries.length + 1;
+          this.matchIndex[msg.sender] = prevLogIndex + request.entries.length;
 
           // Determine if any entries can be committed.
-          var numReplicas = this.otherReplicaIds.length;
-          var majority = Math.round(numReplicas / 2) + 1;
+          var numReplicas = this.otherReplicaIds.length + 1;
+          var majority = Math.round(numReplicas / 2);
           for (var i = 1; i < request.entries.length + 1; i++) {
-            var logIndex = i + request.prevLogIndex;
+            var logIndex = i + prevLogIndex;
 
-            // If we haven't reached the commit index, then there
+            // If at or behind the commit index, then there
             // is nothing to do, since it is already committed.
-            if (logIndex < this.commitIndex) {
+            if (logIndex <= this.commitIndex) {
               continue;
             }
 
@@ -276,7 +285,9 @@ class Replica extends Entity {
             // Count replications, including our own.
             var replications = 1;
             for (var j = 0; j < this.nextIndex.length; j++) {
-              if (this.matchIndex[j] > logIndex) {
+              if (j == this.id) { continue; }
+
+              if (this.matchIndex[j] >= logIndex) {
                 replications++;
                 if (replications >= majority) {
                   this.setCommitIndex(logIndex);
@@ -313,15 +324,19 @@ class Replica extends Entity {
         res.init();
         this.messageManager.schedule(res);
 
-        // If we casted a positive vote, become a follower and mark vote.
+        // If we cast a positive vote, become a follower and mark vote.
         if (voteGranted) {
-            this.circle.attr("class", "replica follower");
-            this.nextIndex = null;
-            this.matchIndex = null;
-            this.framesSinceAppendEntries = null;
             this.votedFor = msg.sender;
+            this.becomeFollower();
         }
         console.log("Replica " + this.id + " became follower and voted for replica " + msg.sender);
+    }
+
+    becomeFollower() {
+      this.circle.attr("class", "replica follower");
+      this.nextIndex = null;
+      this.matchIndex = null;
+      this.framesSinceAppendEntries = null;
     }
 
     isCandidateLogUpToDate(msg) {
@@ -343,16 +358,23 @@ class Replica extends Entity {
             this.voteCount++;
 
             // Become leader if we have received a majority.
-            if (this.voteCount > Math.round(this.otherReplicaIds.length / 2 + 0.5)) {
+            var majority = Math.round((this.otherReplicaIds.length + 1) / 2);
+            if (this.voteCount >= majority) {
                 this.circle.attr("class", "replica leader");
 
-                var lastLogIndex = this.log.length == 0 ? 0 : this.log.length - 1;
-                this.nextIndex = [];
-                this.matchIndex = [];
-                this.otherReplicaIds.forEach(function(replicaId, lastLogIndex) {
-                    this.nextIndex.push(lastLogIndex + 1);
+                var lastLogIndex = this.log.length == 0 ? null : this.log.length - 1;
+
+                this.nextIndex = [0];
+                this.matchIndex = [0];
+                this.otherReplicaIds.forEach(function(replicaId) {
+                    this.nextIndex.push(0);
                     this.matchIndex.push(0);
                 }.bind(this));
+
+                var nextIndex = lastLogIndex == null ? 0 : lastLogIndex + 1;
+                for (var i = 0; i < this.otherReplicaIds.length; i++) {
+                    this.nextIndex[i] = nextIndex;
+                };
 
                 // The arc has no value since we are no longer holding elections.
                 this.arc.endAngle(0);
