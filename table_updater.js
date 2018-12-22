@@ -11,7 +11,7 @@ class TableUpdater {
 
     updateCommitIndex(replica, index) {
       for (var i = 0; i <= index; i++) {
-        var row = this.tableEl.rows[index];
+        var row = this.tableEl.rows[i];
         if (!row) {
           throw Error("Cannot commit an index that is not in table.");
         }

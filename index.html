@@ -9,23 +9,25 @@
 </head>
 
 <body>
-    <div class="animation">
-        <svg></svg>
+  <div id="animation-and-controls">
+  <button id="pause-button" type="button">Pause</button>
+    <div id="animation-holder">
+        <svg id="animation"></svg>
     </div>
 
     <div class="logs-holder">
         <table id="logs-table" class="logs">
           <thead>
             <tr>
+                <th>0</th>
                 <th>1</th>
                 <th>2</th>
-                <th>3</th>
             </tr>
            </thead>
            <tbody id="logs-table-body"></tbody>
         </table>
     </div>
-    <button id="pause-button" type="button">Pause</button>
+  </div>
 </body>
 
 </html>

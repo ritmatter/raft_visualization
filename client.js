@@ -56,7 +56,6 @@ class Client extends Entity {
     sendDataRequest() {
         var leader = this.dataRequestRouter.getLeader();
         if (leader == null) {
-            console.log("Client " + this.id + " skipping data because there is no leader.");
             return;
         }
 
