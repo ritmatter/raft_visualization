@@ -375,7 +375,12 @@ class Replica extends Entity {
     }
 
     handleRequestVoteResponse(msg) {
-        if (msg.voteGranted) {
+        if (msg.voteGranted && msg.term == this.currentTerm) {
+            if (this.isLeader()) {
+              // Nothing to do if we are already leader.
+              return;
+            }
+
             this.voteCount++;
 
             // Become leader if we have received a majority.
