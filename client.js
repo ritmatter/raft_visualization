@@ -35,22 +35,22 @@ class Client extends Entity {
     cleanup() {
         this.disappear();
         window.setTimeout(function() {
-         this.group.remove();
+            this.group.remove();
         }.bind(this), 1520);
     }
 
     handleFrame() {
-        if (Math.random() < 1 / this.avgFramesBetweenMessages) {
+        if (Math.random() < (1 / this.avgFramesBetweenMessages)) {
             this.sendDataRequest();
         }
     }
 
     appear() {
-      $("#" + this.id).fadeIn(1500);
+        $("#" + this.id).fadeIn(1500);
     }
 
     disappear() {
-      $("#" + this.id).fadeOut(1500);
+        $("#" + this.id).fadeOut(1500);
     }
 
     sendDataRequest() {

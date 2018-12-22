@@ -45,14 +45,18 @@ class Message {
 
 // Base factory for creating message objects.
 class MessageFactory {
-    constructor(radius, v, entities) {
+    constructor(radius, v, jitter, entities) {
         // By default all messages have the same radius.
         this.radius = radius;
 
         // By default all messages have the same velocity, representing
-        // network latency. Random jitter could be added here to be more
+        // network latency. random jitter could be added here to be more
         // real.
         this.v = v;
+
+        // The max amount of jitter in velocity. The velocity for each msg
+        // will be the base v plus some random amount of jitter.
+        this.jitter = jitter;
 
         // A map of Id to entity. Each entity has x and y coordinates that
         // are used to direct messages.
@@ -72,8 +76,9 @@ class MessageFactory {
         var dy = ry - sy;
         var theta = Math.atan(Math.abs(dy / dx));
 
-        var vx = this.v * Math.cos(theta);
-        var vy = this.v * Math.sin(theta);
+        var v = this.v + (Math.random() * this.jitter);
+        var vx = v * Math.cos(theta);
+        var vy = v * Math.sin(theta);
         if (dx < 0) {
             vx *= -1;
         }

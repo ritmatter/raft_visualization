@@ -36,9 +36,9 @@ import {
 } from "./client_factory.js"
 
 var paused = false;
-var fps = 60;
+var FPS = 60;
 var time = new Date().getTime();
-var interval = 1000 / fps;
+var interval = 1000 / FPS;
 var color = "black";
 
 var replica1, replica2, replica3;
@@ -62,7 +62,7 @@ var delta;
 var BOX_LENGTH = 500;
 
 // The length of a square that encapsulates all of the replicas.
-var REPLICA_BOX_LENGTH = 300;
+var REPLICA_BOX_LENGTH = 400;
 
 // Padding to apply to the outside of the replica box so that clients
 // do not appear directly next to a replica.
@@ -73,11 +73,13 @@ var REPLICA_RADIUS = 30;
 
 var MESSAGE_RADIUS = 16;
 
-var MESSAGE_VELOCITY = 8;
+var MSG_PIXELS_PER_F = 10; // Base pixels per frame before jitter.
+
+var MSG_PIXELS_PER_F_MAX_JITTER = 4; // Pixels per frame max jitter.
 
 // Parameters for clients.
 var CLIENT_RADIUS = 20;
-var AVG_FRAMES_BETWEEN_DATA = 120;
+var AVG_FRAMES_BETWEEN_DATA = 240;
 var MAX_CLIENTS = 1;
 var AVG_FRAMES_BETWEEN_CLIENTS = 60;
 var MIN_CLIENT_FRAME_LIFE = 600;
@@ -91,8 +93,6 @@ function init() {
 
     // Initialize the size of the SVG plane.
     var svg = d3.select("svg");
-    //svg.attr("width", BOX_LENGTH);
-    //svg.attr("height", BOX_LENGTH);
     var animationCenter = BOX_LENGTH / 2;
     var replicaCircleRadius = REPLICA_BOX_LENGTH / 2 - REPLICA_RADIUS - REPLICA_BOX_PADDING;
     var triangleSide = replicaCircleRadius * Math.sqrt(3);
@@ -102,36 +102,43 @@ function init() {
     var coordsBl = [animationCenter - triangleSide / 2, bottomY];
     var coordsBr = [animationCenter + triangleSide / 2, bottomY];
 
+    // Election time must be much greater than message send time.
+    // We calibrate for the simulation assuming one req-res pair
+    // takes 10ms and the election period is 150-300ms.
+    var pixelsBetweenReplicas = coordsBr[0] - coordsBl[0];
+    var reqResLatencyFrames = pixelsBetweenReplicas / (MSG_PIXELS_PER_F_MAX_JITTER / 2 + MSG_PIXELS_PER_F) * 2;
+    var minElectionFrames = Math.round((reqResLatencyFrames * 15));
+
     dataRequestRouter = new DataRequestRouter(replicas);
     messageManager = new MessageManager(entities, dataRequestRouter);
-    requestVoteRequestFactory = new RequestVoteRequestFactory(MESSAGE_RADIUS, MESSAGE_VELOCITY, entities);
-    requestVoteResponseFactory = new RequestVoteResponseFactory(MESSAGE_RADIUS, MESSAGE_VELOCITY, entities);
+    requestVoteRequestFactory = new RequestVoteRequestFactory(MESSAGE_RADIUS, MSG_PIXELS_PER_F, MSG_PIXELS_PER_F_MAX_JITTER, entities);
+    requestVoteResponseFactory = new RequestVoteResponseFactory(MESSAGE_RADIUS, MSG_PIXELS_PER_F, MSG_PIXELS_PER_F_MAX_JITTER, entities);
 
-    appendEntriesRequestFactory = new AppendEntriesRequestFactory(MESSAGE_RADIUS, MESSAGE_VELOCITY, entities);
-    appendEntriesResponseFactory = new AppendEntriesResponseFactory(MESSAGE_RADIUS, MESSAGE_VELOCITY, entities);
+    appendEntriesRequestFactory = new AppendEntriesRequestFactory(MESSAGE_RADIUS, MSG_PIXELS_PER_F, MSG_PIXELS_PER_F_MAX_JITTER, entities);
+    appendEntriesResponseFactory = new AppendEntriesResponseFactory(MESSAGE_RADIUS, MSG_PIXELS_PER_F, MSG_PIXELS_PER_F_MAX_JITTER, entities);
 
-    dataRequestFactory = new DataRequestFactory(MESSAGE_RADIUS, MESSAGE_VELOCITY, entities);
+    dataRequestFactory = new DataRequestFactory(MESSAGE_RADIUS, MSG_PIXELS_PER_F, MSG_PIXELS_PER_F_MAX_JITTER, entities);
 
     clientFactory = new ClientFactory(CLIENT_RADIUS, messageManager, dataRequestFactory, AVG_FRAMES_BETWEEN_DATA, dataRequestRouter);
     clientManager = new ClientManager(entities, clientFactory, MAX_CLIENTS, AVG_FRAMES_BETWEEN_CLIENTS, MIN_CLIENT_FRAME_LIFE, MAX_CLIENT_FRAME_LIFE, BOX_LENGTH, REPLICA_BOX_LENGTH, CLIENT_RADIUS);
 
     replica1 = new Replica(0, REPLICA_RADIUS, coordsBl[0], coordsBl[1], [1, 2], requestVoteRequestFactory,
         requestVoteResponseFactory, appendEntriesRequestFactory, appendEntriesResponseFactory,
-        messageManager, tableUpdater);
+        messageManager, tableUpdater, minElectionFrames);
     entities[0] = replica1;
     replicas.push(replica1);
     replica1.init();
 
     replica2 = new Replica(1, REPLICA_RADIUS, coordsBr[0], coordsBr[1], [0, 2], requestVoteRequestFactory,
         requestVoteResponseFactory, appendEntriesRequestFactory, appendEntriesResponseFactory,
-        messageManager, tableUpdater);
+        messageManager, tableUpdater, minElectionFrames);
     entities[1] = replica2;
     replicas.push(replica2);
     replica2.init();
 
     replica3 = new Replica(2, REPLICA_RADIUS, coordsTop[0], coordsTop[1], [0, 1], requestVoteRequestFactory,
         requestVoteResponseFactory, appendEntriesRequestFactory, appendEntriesResponseFactory,
-        messageManager, tableUpdater);
+        messageManager, tableUpdater, minElectionFrames);
     entities[2] = replica3;
     replicas.push(replica3);
     replica3.init();

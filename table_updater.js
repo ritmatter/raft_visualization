@@ -10,15 +10,15 @@ class TableUpdater {
     }
 
     updateCommitIndex(replica, index) {
-      for (var i = 0; i <= index; i++) {
-        var row = this.tableEl.rows[i];
-        if (!row) {
-          throw Error("Cannot commit an index that is not in table.");
-        }
+        for (var i = 0; i <= index; i++) {
+            var row = this.tableEl.rows[i];
+            if (!row) {
+                throw Error("Cannot commit an index that is not in table.");
+            }
 
-        var replicaCell = row.cells[replica];
-        replicaCell.classList.add("committed");
-      }
+            var replicaCell = row.cells[replica];
+            replicaCell.classList.add("committed");
+        }
     }
 
     insertValue(replica, index, term, value) {
@@ -39,6 +39,21 @@ class TableUpdater {
         termData.textContent = term;
         termData.classList.add("table-term");
         cell.appendChild(termData);
+    }
+
+    purgeValues(replicaId, newLength, oldLength) {
+        for (var i = newLength; i < oldLength; i++) {
+            var row = this.tableEl.rows[i];
+            if (!row) {
+                throw Error("Failed to purge values for " + replicaId +
+                    " from " + newLength + " to " + oldLength +
+                    ": row missing at index " + i);
+            }
+            var cell = row.cells[replicaId];
+            while (cell.firstChild) {
+                cell.removeChild(cell.firstChild);
+            }
+        }
     }
 }
 

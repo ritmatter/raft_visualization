@@ -39,8 +39,8 @@ class DataRequest extends Message {
 }
 
 class DataRequestFactory extends MessageFactory {
-    constructor(radius, v, replicas) {
-        super(radius, v, replicas);
+    constructor(radius, v, jitter, replicas) {
+        super(radius, v, jitter, replicas);
     }
 
     get(data, sender, receiver) {

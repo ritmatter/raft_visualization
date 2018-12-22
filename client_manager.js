@@ -66,7 +66,6 @@ class ClientManager {
                 y = Math.round(Math.random() * (largestY - smallestY)) + smallestY;
             }
         }
-        console.log("Chose coordinates " + x + " and " + y);
         return [x, y];
     }
 
@@ -75,7 +74,6 @@ class ClientManager {
         this.clientIds[clientId].cleanup();
         delete this.clientIds[clientId];
         delete this.entities[clientId];
-        console.log("delete client " + clientId);
     }
 }
 

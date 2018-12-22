@@ -39,8 +39,8 @@ class RequestVoteRequest extends Message {
 }
 
 class RequestVoteRequestFactory extends MessageFactory {
-    constructor(radius, v, replicas) {
-        super(radius, v, replicas);
+    constructor(radius, v, jitter, replicas) {
+        super(radius, v, jitter, replicas);
     }
 
     get(term, candidateId, lastLogIndex, lastLogTerm, receiver) {

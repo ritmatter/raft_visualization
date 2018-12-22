@@ -35,12 +35,11 @@ class RequestVoteResponse extends Message {
         this.icon.attr(
             "transform", "translate(" + imgX + ", " + imgY + ")");
     }
-
 }
 
 class RequestVoteResponseFactory extends MessageFactory {
-    constructor(radius, v, replicas) {
-        super(radius, v, replicas);
+    constructor(radius, v, jitter, replicas) {
+        super(radius, v, jitter, replicas);
     }
 
     get(term, voteGranted, sender, receiver) {
