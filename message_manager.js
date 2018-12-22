@@ -13,9 +13,16 @@ class MessageManager {
     }
 
     handleFrame() {
+        var undroppedMessages = [];
         this.messages.forEach(function(message) {
-            message.handleFrame();
+            if (message.dropped) {
+              message.cleanup();
+            } else {
+              message.handleFrame();
+              undroppedMessages.push(message);
+            }
         });
+        this.messages = undroppedMessages;
         this.deliverArrivals();
     }
 

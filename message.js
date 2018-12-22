@@ -9,6 +9,9 @@ class Message {
         this.vy = vy;
         this.sender = sender;
         this.receiver = receiver;
+
+        // The message status. Dropped if clicked.
+        this.dropped = false;
     }
 
     makeid() {
@@ -22,12 +25,23 @@ class Message {
     }
 
     init() {
-        this.group = d3.select("svg").append("g");
+        this.group = d3.select("svg").append("g")
+            .attr("id", this.id);
 
         this.el = this.group.append("circle");
         this.el.attr("cx", this.x);
         this.el.attr("cy", this.y);
         this.el.attr("r", this.radius);
+
+        // Bind the function to drop a message.
+        $("#" + this.id).click(function() {
+          this.dropped = true;
+          $("#" + this.id).toggleClass("dropped-message");
+          if (this.icon) {
+            this.icon.remove();
+          }
+        }.bind(this));
+
     }
 
     cleanup() {
