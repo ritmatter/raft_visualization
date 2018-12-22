@@ -78,7 +78,7 @@ class Replica extends Entity {
 
         // Add the label for this replica.
         this.group.append("text")
-            .attr("dx", this.x - 8)
+            .attr("dx", this.x - 10)
             .attr("dy", this.y + 10)
             .attr("class", "replica-label")
             .attr("id", this.id + "-label")

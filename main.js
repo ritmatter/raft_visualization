@@ -59,10 +59,10 @@ var clientFactory;
 var delta;
 
 // The length of a square that encapsulates the entire animation space.
-var BOX_LENGTH = 500;
+var BOX_LENGTH = 400;
 
 // The length of a square that encapsulates all of the replicas.
-var REPLICA_BOX_LENGTH = 400;
+var REPLICA_BOX_LENGTH = 300;
 
 // Padding to apply to the outside of the replica box so that clients
 // do not appear directly next to a replica.
@@ -73,7 +73,7 @@ var REPLICA_RADIUS = 30;
 
 var MESSAGE_RADIUS = 16;
 
-var MSG_PIXELS_PER_F = 10; // Base pixels per frame before jitter.
+var MSG_PIXELS_PER_F = 8; // Base pixels per frame before jitter.
 
 var MSG_PIXELS_PER_F_MAX_JITTER = 4; // Pixels per frame max jitter.
 
