@@ -5,6 +5,7 @@
 }
 
 #pause-button {
+  height: 50px;
   float: left;
 }
 
@@ -48,9 +49,8 @@ td, tr {
   font-size: 20px;
 }
 
-#animation-and-controls {
-    margin-left: 25%;
-    margin-top: 10px;
+.row {
+  margin: 5px;
 }
 
 #animation-holder {
