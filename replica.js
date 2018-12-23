@@ -222,10 +222,12 @@ class Replica extends Entity {
             success = false;
         }
 
+        // Make sure we are a follower once we receive a successful append.
+        this.becomeFollower();
+
         // Update the current term if necessary.
         if (msg.term > this.currentTerm) {
             this.currentTerm = msg.term;
-            this.becomeFollower();
         }
 
         if (success) {
