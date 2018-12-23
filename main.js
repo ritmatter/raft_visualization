@@ -169,14 +169,14 @@ function draw() {
 
 // Implement a rudimentary pause button for debugging.
 $(document).ready(function() {
-
     $("#pause-button").click(function() {
         paused = !paused;
         if (!paused) {
             window.requestAnimationFrame(draw);
         }
     });
+  init();
+  window.requestAnimationFrame(draw);
 });
 
-init();
-window.requestAnimationFrame(draw);
+
