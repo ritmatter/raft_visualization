@@ -10,11 +10,9 @@ class TableUpdater {
     }
 
     init() {
-      for (var i = 0; i < 2; i++) {
-        var row = this.tableEl.insertRow(i);
-        for (var j = 0; j < this.numReplicas; j++) {
-          row.insertCell(j);
-        }
+      var row = this.tableEl.insertRow(0);
+      for (var j = 0; j < this.numReplicas; j++) {
+        row.insertCell(j);
       }
     }
 
