@@ -2,29 +2,26 @@ import {
     TableUpdater
 } from "./table_updater.js"
 import {
-    Message
-} from "./message.js"
-import {
     Replica
 } from "./replica.js"
 import {
     DataRequestFactory
-} from "./data_request.js"
+} from "./messages/data_request.js"
 import {
     DataRequestRouter
 } from "./data_request_router.js"
 import {
     RequestVoteRequestFactory
-} from "./request_vote_request.js"
+} from "./messages/request_vote_request.js"
 import {
     RequestVoteResponseFactory
-} from "./request_vote_response.js"
+} from "./messages/request_vote_response.js"
 import {
     AppendEntriesRequestFactory
-} from "./append_entries_request.js"
+} from "./messages/append_entries_request.js"
 import {
     AppendEntriesResponseFactory
-} from "./append_entries_response.js"
+} from "./messages/append_entries_response.js"
 import {
     MessageManager
 } from "./message_manager.js"
@@ -175,8 +172,6 @@ $(document).ready(function() {
             window.requestAnimationFrame(draw);
         }
     });
-  init();
-  window.requestAnimationFrame(draw);
+    init();
+    window.requestAnimationFrame(draw);
 });
-
-

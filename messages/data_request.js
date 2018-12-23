@@ -4,7 +4,7 @@ import {
 } from "./message.js"
 import {
     getDataIcon
-} from "./utils.js"
+} from "../utils/utils.js"
 
 class DataRequest extends Message {
     constructor(data, radius, x, y, vx, vy, sender, receiver) {

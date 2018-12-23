@@ -3,19 +3,19 @@ import {
 } from "./entity.js"
 import {
     RequestVoteRequest
-} from "./request_vote_request.js"
+} from "./messages/request_vote_request.js"
 import {
     RequestVoteResponse
-} from "./request_vote_response.js"
+} from "./messages/request_vote_response.js"
 import {
     AppendEntriesRequest
-} from "./append_entries_request.js"
+} from "./messages/append_entries_request.js"
 import {
     AppendEntriesResponse
-} from "./append_entries_response.js"
+} from "./messages/append_entries_response.js"
 import {
     DataRequest
-} from "./data_request.js"
+} from "./messages/data_request.js"
 
 class Replica extends Entity {
     constructor(id, radius, x, y, otherReplicaIds, requestVoteRequestFactory, requestVoteResponseFactory, appendEntriesRequestFactory, appendEntriesResponseFactory, messageManager, tableUpdater, minElectionFrames) {
@@ -377,8 +377,8 @@ class Replica extends Entity {
     handleRequestVoteResponse(msg) {
         if (msg.voteGranted && msg.term == this.currentTerm) {
             if (this.isLeader()) {
-              // Nothing to do if we are already leader.
-              return;
+                // Nothing to do if we are already leader.
+                return;
             }
 
             this.voteCount++;

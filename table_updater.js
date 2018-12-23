@@ -1,6 +1,6 @@
 import {
     getDataIcon
-} from "./utils.js"
+} from "./utils/utils.js"
 
 // Updates the table of logs for the replicas.
 class TableUpdater {

@@ -1,11 +1,6 @@
 import {
     Entity
 } from "./entity.js"
-
-import {
-    DataRequest
-} from "./data_request.js"
-
 class Client extends Entity {
     constructor(id, radius, x, y, messageManager, dataRequestFactory, avgFramesBetweenMessages, dataRequestRouter) {
         super(radius);
