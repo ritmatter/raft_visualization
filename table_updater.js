@@ -9,9 +9,19 @@ class TableUpdater {
         this.numReplicas = numReplicas;
     }
 
-    updateCommitIndex(replica, index) {
-        for (var i = 0; i <= index; i++) {
-            var row = this.tableEl.rows[i];
+    init() {
+      for (var i = 0; i < 2; i++) {
+        var row = this.tableEl.insertRow(i);
+        for (var j = 0; j < this.numReplicas; j++) {
+          row.insertCell(j);
+        }
+      }
+    }
+
+    updateCommitIndex(replica, commitIndex) {
+        for (var i = 0; i <= commitIndex; i++) {
+            var index = this.tableEl.rows.length - 1 - i;
+            var row = this.tableEl.rows[index];
             if (!row) {
                 throw Error("Cannot commit an index that is not in table.");
             }
@@ -22,14 +32,27 @@ class TableUpdater {
     }
 
     insertValue(replica, index, term, value) {
-        var row = this.tableEl.rows[index];
-        if (!row) {
-            row = this.tableEl.insertRow(index);
-            for (var i = 0; i < this.numReplicas; i++) {
-                row.insertCell(i);
-            }
+        var i = this.tableEl.rows.length - 1 - index;
+
+        var row;
+        if (i < 0) {
+          // Add a new row at the front of the table.
+          row = this.tableEl.insertRow(0);
+          for (var j = 0; j < this.numReplicas; j++) {
+              row.insertCell(j);
+          }
+        } else {
+          // Put the data in the existing row.
+          row = this.tableEl.rows[i];
+          if (!row) {
+            throw Error("Attempting to overwrite cell in missing row");
+          }
         }
+
         var cell = row.cells[replica];
+        if (cell.hasChildNodes()) {
+          throw Error("Attempting to put data in non-empty cell");
+        }
 
         var svg = d3.select(cell).append("img")
             .attr("class", "table-data")
@@ -43,11 +66,12 @@ class TableUpdater {
 
     purgeValues(replicaId, newLength, oldLength) {
         for (var i = newLength; i < oldLength; i++) {
-            var row = this.tableEl.rows[i];
+            var index = this.tableEl.rows.length - i - 1;
+            var row = this.tableEl.rows[index];
             if (!row) {
                 throw Error("Failed to purge values for " + replicaId +
                     " from " + newLength + " to " + oldLength +
-                    ": row missing at index " + i);
+                    ": row missing at index " + index);
             }
             var cell = row.cells[replicaId];
             while (cell.firstChild) {

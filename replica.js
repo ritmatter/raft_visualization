@@ -231,9 +231,10 @@ class Replica extends Entity {
         }
 
         if (success) {
+            var entries = msg.entries;
             var earliestNewIndex = msg.prevLogIndex + 1;
             var currIndex = earliestNewIndex;
-            for (var i = 0; i < msg.entries.length; i++) {
+            for (var i = 0; i < entries.length; i++) {
                 currIndex = earliestNewIndex + i;
                 var currEntry = msg.entries[i];
                 if (currIndex > this.log.length - 1) {
@@ -247,8 +248,9 @@ class Replica extends Entity {
                 }
             }
 
-            // Reset the commit index if necessary.
-            if (msg.leaderCommit > this.commitIndex) {
+            // Reset the commit index the new commit index is higher and new
+            // entries were added.
+            if (msg.leaderCommit > this.commitIndex && entries.length > 0) {
                 this.setCommitIndex(Math.min(msg.leaderCommit, currIndex));
             }
 

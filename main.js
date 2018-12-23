@@ -87,6 +87,7 @@ function init() {
     $("#animation-holder").width(BOX_LENGTH);
 
     tableUpdater = new TableUpdater(3);
+    tableUpdater.init();
 
     // Initialize the size of the SVG plane.
     var svg = d3.select("svg");
