@@ -76,7 +76,7 @@ var MSG_PIXELS_PER_F_MAX_JITTER = 4; // Pixels per frame max jitter.
 
 // Parameters for clients.
 var CLIENT_RADIUS = 20;
-var AVG_FRAMES_BETWEEN_DATA = 240;
+var AVG_FRAMES_BETWEEN_DATA = 180;
 var MAX_CLIENTS = 1;
 var AVG_FRAMES_BETWEEN_CLIENTS = 60;
 var MIN_CLIENT_FRAME_LIFE = 600;
@@ -118,7 +118,7 @@ function init() {
     dataRequestFactory = new DataRequestFactory(MESSAGE_RADIUS, MSG_PIXELS_PER_F, MSG_PIXELS_PER_F_MAX_JITTER, entities);
 
     clientFactory = new ClientFactory(CLIENT_RADIUS, messageManager, dataRequestFactory, AVG_FRAMES_BETWEEN_DATA, dataRequestRouter);
-    clientManager = new ClientManager(entities, clientFactory, MAX_CLIENTS, AVG_FRAMES_BETWEEN_CLIENTS, MIN_CLIENT_FRAME_LIFE, MAX_CLIENT_FRAME_LIFE, BOX_LENGTH, REPLICA_BOX_LENGTH, CLIENT_RADIUS);
+    clientManager = new ClientManager(entities, clientFactory, MAX_CLIENTS, AVG_FRAMES_BETWEEN_CLIENTS, MIN_CLIENT_FRAME_LIFE, MAX_CLIENT_FRAME_LIFE, BOX_LENGTH, REPLICA_BOX_LENGTH, CLIENT_RADIUS, dataRequestRouter);
 
     replica1 = new Replica(0, REPLICA_RADIUS, coordsBl[0], coordsBl[1], [1, 2], requestVoteRequestFactory,
         requestVoteResponseFactory, appendEntriesRequestFactory, appendEntriesResponseFactory,

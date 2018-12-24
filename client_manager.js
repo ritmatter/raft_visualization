@@ -1,5 +1,5 @@
 class ClientManager {
-    constructor(entities, clientFactory, maxClients, framesBeforeAdd, minClientFrames, maxClientFrames, planeLength, replicaPlaneLength, clientRadius) {
+    constructor(entities, clientFactory, maxClients, framesBeforeAdd, minClientFrames, maxClientFrames, planeLength, replicaPlaneLength, clientRadius, dataRequestRouter) {
         this.entities = entities;
         this.clientFactory = clientFactory;
         this.clientIds = {};
@@ -11,13 +11,17 @@ class ClientManager {
         this.planeLength = planeLength;
         this.replicaPlaneLength = replicaPlaneLength;
         this.clientRadius = clientRadius;
+        this.dataRequestRouter = dataRequestRouter;
     }
 
     handleFrame() {
-        if (Object.keys(this.clientIds).length < this.maxClients) {
-            if (Math.random() < 1 / this.framesBeforeAdd) {
-                this.addClient();
-            }
+        // We make sure there is a leader before adding a client to
+        // avoid a confusing UI where there is a client that can't
+        // send data.
+        if (Object.keys(this.clientIds).length < this.maxClients &&
+            Math.random() < 1 / this.framesBeforeAdd &&
+            this.dataRequestRouter.getLeader() != null) {
+              this.addClient();
         }
 
         for (var clientId in this.clientIds) {
