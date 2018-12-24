@@ -252,10 +252,8 @@ class Replica extends Entity {
                 }
             }
 
-            // Reset the commit index the new commit index is higher and new
-            // entries were added.
-            if (msg.leaderCommit > this.commitIndex && entries.length > 0) {
-                this.setCommitIndex(Math.min(msg.leaderCommit, currIndex));
+            if (msg.leaderCommit > this.commitIndex) {
+              this.setCommitIndex(Math.min(msg.leaderCommit, currIndex));
             }
 
             // Reset the election timer.
