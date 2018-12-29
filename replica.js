@@ -47,7 +47,6 @@ class Replica extends Entity {
 
         // Volatile state.
         this.commitIndex = -1;
-        this.lastApplied = -1;
 
         // Volatile leader state, only set if this replica is the leader.
         this.nextIndex = null;
@@ -236,10 +235,9 @@ class Replica extends Entity {
 
         if (success) {
             var entries = msg.entries;
-            var earliestNewIndex = msg.prevLogIndex + 1;
-            var currIndex = earliestNewIndex;
+            var currIndex = msg.prevLogIndex
             for (var i = 0; i < entries.length; i++) {
-                currIndex = earliestNewIndex + i;
+                currIndex++;
                 var currEntry = msg.entries[i];
                 if (currIndex > this.log.length - 1) {
                     // We are beyond the length of our log, add the entry.
@@ -252,8 +250,9 @@ class Replica extends Entity {
                 }
             }
 
-            if (msg.leaderCommit > this.commitIndex) {
-              this.setCommitIndex(Math.min(msg.leaderCommit, currIndex));
+            var leaderCommit = msg.leaderCommit;
+            if (leaderCommit > this.commitIndex) {
+              this.setCommitIndex(Math.min(leaderCommit, currIndex));
             }
 
             // Reset the election timer.
@@ -438,7 +437,8 @@ class Replica extends Entity {
     }
 
     sendAppendNewEntries(entries) {
-        var prevLogIndex = this.log.length < 2 ? -1 : this.log.length - 2;
+        // At this point, all of the entries have been added to this log.
+        var prevLogIndex = this.log.length - 1 - entries.length;
         var prevLogTerm = prevLogIndex < 0 ? null : this.log[prevLogIndex][1];
 
         this.otherReplicaIds.forEach(function(replicaId) {
